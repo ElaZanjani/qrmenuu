@@ -1,9 +1,10 @@
-CREATE DATABASE IF NOT EXISTS mikaleyazilim_com_center DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; USE mikaleyazilim_com_center;
+CREATE DATABASE IF NOT EXISTS qrmenu_sepet_db DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE qrmenu_sepet_db;
 -- --------------------------------------------------------
--- Sunucu:                       127.0.0.1
--- Sunucu sürümü:                8.4.3 - MySQL Community Server - GPL
--- Sunucu İşletim Sistemi:       Win64
--- HeidiSQL Sürüm:               12.8.0.6908
+-- Sunucu:                      127.0.0.1
+-- Sunucu sürümü:               8.4.3 - MySQL Community Server - GPL
+-- Sunucu İşletim Sistemi:      Win64
+-- HeidiSQL Sürüm:              12.8.0.6908
 -- --------------------------------------------------------
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
@@ -15,7 +16,24 @@ CREATE DATABASE IF NOT EXISTS mikaleyazilim_com_center DEFAULT CHARACTER SET utf
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
--- tablo yapısı dökülüyor mikaleyazilim_com_center.failed_jobs
+-- tablo yapısı dökülüyor qrmenu_sepet_db.ayarlar
+CREATE TABLE IF NOT EXISTS `ayarlar` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `sirket_adi` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `wifi_sifresi` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `telefon` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `adres` text COLLATE utf8mb4_unicode_ci,
+  `yorum_linki` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- qrmenu_sepet_db.ayarlar: çakışma hatasını önlemek için INSERT IGNORE yapıldı
+INSERT IGNORE INTO `ayarlar` (`id`, `sirket_adi`, `wifi_sifresi`, `telefon`, `adres`, `yorum_linki`, `created_at`, `updated_at`) VALUES
+	(1, 'Center Cafe & Bistro', 'center2026', '+90 555 123 45 67', 'Merkez Mah. No:123', 'https://search.google.com/local/writereview?placeid=ChIJN1t_tDeuEmsRUsoyG83frY4', NULL, NULL);
+
+-- tablo yapısı dökülüyor qrmenu_sepet_db.failed_jobs
 CREATE TABLE IF NOT EXISTS `failed_jobs` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `uuid` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -28,23 +46,19 @@ CREATE TABLE IF NOT EXISTS `failed_jobs` (
   UNIQUE KEY `failed_jobs_uuid_unique` (`uuid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- mikaleyazilim_com_center.failed_jobs: ~0 rows (yaklaşık) tablosu için veriler indiriliyor
-
--- tablo yapısı dökülüyor mikaleyazilim_com_center.forms
+-- tablo yapısı dökülüyor qrmenu_sepet_db.forms
 CREATE TABLE IF NOT EXISTS `forms` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `email` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `message` text COLLATE utf8mb4_unicode_ci NOT NULL,
-  `status` varchar(191) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `telefon` varchar(191) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `email` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `message` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `status` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `telefon` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- mikaleyazilim_com_center.forms: ~0 rows (yaklaşık) tablosu için veriler indiriliyor
-
--- tablo yapısı dökülüyor mikaleyazilim_com_center.kasa_z_raporlari
+-- tablo yapısı dökülüyor qrmenu_sepet_db.kasa_z_raporlari
 CREATE TABLE IF NOT EXISTS `kasa_z_raporlari` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `tarih` date NOT NULL,
@@ -58,9 +72,7 @@ CREATE TABLE IF NOT EXISTS `kasa_z_raporlari` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- mikaleyazilim_com_center.kasa_z_raporlari: ~0 rows (yaklaşık) tablosu için veriler indiriliyor
-
--- tablo yapısı dökülüyor mikaleyazilim_com_center.migrations
+-- tablo yapısı dökülüyor qrmenu_sepet_db.migrations
 CREATE TABLE IF NOT EXISTS `migrations` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
   `migration` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -68,7 +80,6 @@ CREATE TABLE IF NOT EXISTS `migrations` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- mikaleyazilim_com_center.migrations: ~10 rows (yaklaşık) tablosu için veriler indiriliyor
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 	(1, '2021_07_06_095005_create_urun_karts_table', 1),
 	(2, '2021_07_07_072755_create_urun_grubus_table', 1),
@@ -81,7 +92,7 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 	(22, '2023_12_14_175833_create_forms_table', 5),
 	(23, '2026_08_14_000001_create_desktop_sync_tables', 6);
 
--- tablo yapısı dökülüyor mikaleyazilim_com_center.password_resets
+-- tablo yapısı dökülüyor qrmenu_sepet_db.password_resets
 CREATE TABLE IF NOT EXISTS `password_resets` (
   `email` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `token` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -89,9 +100,7 @@ CREATE TABLE IF NOT EXISTS `password_resets` (
   KEY `password_resets_email_index` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- mikaleyazilim_com_center.password_resets: ~0 rows (yaklaşık) tablosu için veriler indiriliyor
-
--- tablo yapısı dökülüyor mikaleyazilim_com_center.t_anagrup
+-- tablo yapısı dökülüyor qrmenu_sepet_db.t_anagrup
 CREATE TABLE IF NOT EXISTS `t_anagrup` (
   `id` int NOT NULL AUTO_INCREMENT,
   `anaGrup` varchar(100) NOT NULL,
@@ -100,9 +109,7 @@ CREATE TABLE IF NOT EXISTS `t_anagrup` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- mikaleyazilim_com_center.t_anagrup: ~0 rows (yaklaşık) tablosu için veriler indiriliyor
-
--- tablo yapısı dökülüyor mikaleyazilim_com_center.t_ayar
+-- tablo yapısı dökülüyor qrmenu_sepet_db.t_ayar
 CREATE TABLE IF NOT EXISTS `t_ayar` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `logo` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -111,14 +118,13 @@ CREATE TABLE IF NOT EXISTS `t_ayar` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- mikaleyazilim_com_center.t_ayar: ~1 rows (yaklaşık) tablosu için veriler indiriliyor
 INSERT INTO `t_ayar` (`id`, `logo`, `url`, `baslik`) VALUES
 	(1, 'logo.png', 'https://centercafe.mikaleyazilim.com', 'Center Cafe QR Menü');
 
--- tablo yapısı dökülüyor mikaleyazilim_com_center.t_masalar
+-- tablo yapısı dökülüyor qrmenu_sepet_db.t_masalar
 CREATE TABLE IF NOT EXISTS `t_masalar` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `isim` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `isim` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `durum` tinyint NOT NULL DEFAULT '0',
   `guncel_tutar` decimal(10,2) NOT NULL DEFAULT '0.00',
   `siparisler` json DEFAULT NULL,
@@ -128,9 +134,7 @@ CREATE TABLE IF NOT EXISTS `t_masalar` (
   UNIQUE KEY `t_masalar_isim_unique` (`isim`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- mikaleyazilim_com_center.t_masalar: ~0 rows (yaklaşık) tablosu için veriler indiriliyor
-
--- tablo yapısı dökülüyor mikaleyazilim_com_center.t_qrcodecagri
+-- tablo yapısı dökülüyor qrmenu_sepet_db.t_qrcodecagri
 CREATE TABLE IF NOT EXISTS `t_qrcodecagri` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `Masa_id` int NOT NULL,
@@ -142,13 +146,12 @@ CREATE TABLE IF NOT EXISTS `t_qrcodecagri` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- mikaleyazilim_com_center.t_qrcodecagri: ~3 rows (yaklaşık) tablosu için veriler indiriliyor
 INSERT INTO `t_qrcodecagri` (`id`, `Masa_id`, `QRCode`, `Masaismi`, `Personel_id`, `Cagri_zamani`, `Status`) VALUES
 	(1, 1, '3213248946', 'MASA 33', 0, '2021-07-28 17:08:24', 0),
 	(3, 1, '3213248946', 'MASA 33', 0, '2021-07-28 17:09:31', 0),
 	(4, 1, '3213248946', 'MASA 33', 0, '2021-07-28 17:17:44', 0);
 
--- tablo yapısı dökülüyor mikaleyazilim_com_center.t_qrcodekart
+-- tablo yapısı dökülüyor qrmenu_sepet_db.t_qrcodekart
 CREATE TABLE IF NOT EXISTS `t_qrcodekart` (
   `id_QRCode` bigint unsigned NOT NULL AUTO_INCREMENT,
   `QRCode` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -165,11 +168,10 @@ CREATE TABLE IF NOT EXISTS `t_qrcodekart` (
   KEY `t_qrcodekart_cari_id_index` (`Cari_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- mikaleyazilim_com_center.t_qrcodekart: ~1 rows (yaklaşık) tablosu için veriler indiriliyor
 INSERT INTO `t_qrcodekart` (`id_QRCode`, `QRCode`, `Cari_id`, `QRTur`, `KullaniciParola`, `Masa_id`, `Masaismi`, `MusteriAd`, `KullaniciAd`, `Personel_id`, `Status`) VALUES
 	(1, '3213248946', 1, 1, '', 1, 'MASA 33', '', '', 0, 1);
 
--- tablo yapısı dökülüyor mikaleyazilim_com_center.t_urungrubu
+-- tablo yapısı dökülüyor qrmenu_sepet_db.t_urungrubu
 CREATE TABLE IF NOT EXISTS `t_urungrubu` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `UrunGrubu_id` int NOT NULL,
@@ -182,7 +184,6 @@ CREATE TABLE IF NOT EXISTS `t_urungrubu` (
   UNIQUE KEY `t_urungrubu_urungrubu_id_unique` (`UrunGrubu_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=43 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- mikaleyazilim_com_center.t_urungrubu: ~42 rows (yaklaşık) tablosu için veriler indiriliyor
 INSERT INTO `t_urungrubu` (`id`, `UrunGrubu_id`, `Sirano`, `Urungrubu`, `Dil_id`, `UrunGrubuResimPath`, `AnaGrup`) VALUES
 	(1, 48, 0, '', NULL, '', ''),
 	(2, 49, 0, 'L', NULL, '', ''),
@@ -227,7 +228,7 @@ INSERT INTO `t_urungrubu` (`id`, `UrunGrubu_id`, `Sirano`, `Urungrubu`, `Dil_id`
 	(41, 17, 39, 'ALCOLIC COFFES', NULL, '', ''),
 	(42, 8, 40, 'SPIRITS', NULL, '', '');
 
--- tablo yapısı dökülüyor mikaleyazilim_com_center.t_urunkart
+-- tablo yapısı dökülüyor qrmenu_sepet_db.t_urunkart
 CREATE TABLE IF NOT EXISTS `t_urunkart` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `Urun_id` int DEFAULT NULL,
@@ -257,20 +258,18 @@ CREATE TABLE IF NOT EXISTS `t_urunkart` (
   `CokSatan` int DEFAULT NULL,
   `textraozellik` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `P_Tanim` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
-  `resim_url` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `resim_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `is_gluten_free` tinyint(1) DEFAULT '0',
-  `Aciklama` text COLLATE utf8mb4_unicode_ci,
+  `Aciklama` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `Sira` int DEFAULT '1',
   `kalori` int DEFAULT NULL,
   `sure` int DEFAULT NULL,
-  `alerjen` text COLLATE utf8mb4_unicode_ci,
+  `alerjen` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   PRIMARY KEY (`id`),
   UNIQUE KEY `t_urunkart_urun_id_unique` (`Urun_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=211 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=227 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- mikaleyazilim_com_center.t_urunkart: ~210 rows (yaklaşık) tablosu için veriler indiriliyor
 INSERT INTO `t_urunkart` (`id`, `Urun_id`, `UrunTip`, `UrunKod`, `UrunAd`, `UrunAdKisa`, `UrunAciklama`, `UrunGrubu`, `UrunGrubu_id`, `FixFiyat`, `SiraNo`, `P_Yarim`, `P_Birbucuk`, `P_Duble`, `Porsiyon`, `ExtraOzellik`, `Barkod`, `UrunBirim`, `FixFiyat2`, `FixFiyat3`, `Departman`, `UrunResimPath`, `AltGrup`, `Ch_Gram`, `Upd_Tarih`, `CokSatan`, `textraozellik`, `P_Tanim`, `resim_url`, `is_gluten_free`, `Aciklama`, `Sira`, `kalori`, `sure`, `alerjen`) VALUES
-	(1, NULL, NULL, NULL, 'SERPME KAHVALTI (KİŞİ BAŞI 600TL)', NULL, NULL, 'KAHVALTILAR', NULL, 600, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2021-01-01 00:00:00', NULL, NULL, NULL, '/images/urunler/images/1786324305_1678708708640f0fe43df62.jpeg', 0, NULL, 1, 200, 25, NULL),
 	(2, NULL, NULL, NULL, 'SİNİ KAHVALTI', NULL, NULL, 'KAHVALTILAR', NULL, 650, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2021-01-01 00:00:00', NULL, NULL, NULL, '/images/urunler/images/1786346020_1678709243640f11fb59cf4.jpeg', 0, 'Acuka, Reçel, Süt reçeli, Çikolata, Tereyağ, Baharatlı zeytinyağ, karışık zeytin, Söğüş tabağı, Beyaz peynir, Kelle peyniri, Çeçil peyniri, Misket peyniri, Salam, Bal kaymak, Göz yumurta, Sucuk, Simit, Sinirsız Çay. (2 kişiliktir.)', 1, 150, 15, NULL),
 	(3, NULL, NULL, NULL, 'AVOKADO EKMEK', NULL, NULL, 'KAHVALTILAR', NULL, 380, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2021-01-01 00:00:00', NULL, NULL, NULL, '/images/urunler/images/1786346329_1733062794674c708a6d3e5.jpeg', 0, 'Kızarmış Köy Ekmeği Üzeri Avokado(Avokado tuz limon zeytinyağı ile eziliyor.), 2 Adet Pose Yumurta, Salata(Roka, Marul, Havuç, Çeri Domates Üzerine Zeytinyağı.), Lor(Üzerine Çörek otu ve ceviz.)', 1, 100, 15, NULL),
 	(4, NULL, NULL, NULL, 'HAŞLANMIŞ YUMURTALI SPORCU KAHVALTI', NULL, NULL, 'KAHVALTILAR', NULL, 320, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2021-01-01 00:00:00', NULL, NULL, NULL, '/images/urunler/images/1786346489_1733062086674c6dc67914b.jpeg', 0, '3 Haşlanmış Yumurta, Salata(roka, marul, havuç, çeri domates), Lor Peyniri Üzerine Az Zeytinyağı Çörek Otu, Ceviz, 2 Adet Siyah 3 Adet Yeşil Zeytin, 1 Büyük Dilim Kızarmış Köy Ekmeği, Bal', 1, 100, 15, NULL),
@@ -479,9 +478,25 @@ INSERT INTO `t_urunkart` (`id`, `Urun_id`, `UrunTip`, `UrunKod`, `UrunAd`, `Urun
 	(207, NULL, NULL, NULL, 'KIYMA KAŞAR GÖZLEME', NULL, NULL, 'GÖZLEMELER', NULL, 280, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2021-01-01 00:00:00', NULL, NULL, NULL, '/images/urunler/images/1786740926_16875421216495d969dd494.jpeg', 0, 'Zeytin ve Yeşillik ile servis edilir.', 204, 250, 15, NULL),
 	(208, NULL, NULL, NULL, 'KAVURMA KAŞAR GÖZLEME', NULL, NULL, 'GÖZLEMELER', NULL, 290, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2021-01-01 00:00:00', NULL, NULL, NULL, '/images/urunler/images/1786740973_16875421216495d969dd494.jpeg', 0, 'Zeytin ve Yeşillik ile servis edilir.', 208, 250, NULL, NULL),
 	(209, NULL, NULL, NULL, '3 PEYNİRLİ GÖZLEME', NULL, NULL, 'GÖZLEMELER', NULL, 280, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2021-01-01 00:00:00', NULL, NULL, NULL, '/images/urunler/images/1786741045_16875421216495d969dd494.jpeg', 0, 'Beyaz, kelle, kaşar', 209, 250, 15, NULL),
-	(210, NULL, NULL, NULL, 'KAŞARLI KÖYLÜM TOST', NULL, NULL, 'KÖYLÜM (BAZLAMA) TOSTLAR', NULL, 275, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2021-01-01 00:00:00', NULL, NULL, NULL, '/images/urunler/images/1786741215_1730961303672c5f973acc5.jpeg', 0, NULL, 210, 250, 15, NULL);
+	(210, NULL, NULL, NULL, 'KAŞARLI KÖYLÜM TOST', NULL, NULL, 'KÖYLÜM (BAZLAMA) TOSTLAR', NULL, 275, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2021-01-01 00:00:00', NULL, NULL, NULL, '/images/urunler/images/1786741215_1730961303672c5f973acc5.jpeg', 0, NULL, 210, 250, 15, NULL),
+	(211, NULL, NULL, NULL, 'TOFFEE NUT BREW', NULL, NULL, 'SOĞUK KAHVELER', NULL, 270, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2021-01-01 00:00:00', NULL, NULL, NULL, '/images/urunler/images/1787039349_17806016026a21d302485856a21d302ac056.jpg', 0, 'Toffee Nut & Cold Brew Esintisi, kahve zincirlerinin kış klasiklerinden olan Toffee Nut (karamelize fındık) şurubunun zengin aromasını, 22 saat soğuk demlenmiş pürüzsüz Cold Brew ile buluşturan soğuk bir kahve spesiyalidir.', 211, 250, 15, NULL),
+	(212, NULL, NULL, NULL, 'BANANA HONEY LATTE', NULL, NULL, 'SOĞUK KAHVELER', NULL, 290, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2021-01-01 00:00:00', NULL, NULL, NULL, '/images/urunler/images/1787039433_17806018476a21d3f773c306a21d3f7ce028.jpg', 0, 'olgun muzların doğal tatlılığını ve saf balın şifasını, espresso ve soğuk sütün pürüzsüz dokusuyla birleştiren besleyici bir soğuk kahve spesiyalidir.', 212, 250, 15, NULL),
+	(213, NULL, NULL, NULL, 'COLD BREW COFFEE', NULL, NULL, 'SOĞUK KAHVELER', NULL, 240, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2021-01-01 00:00:00', NULL, NULL, NULL, '/images/urunler/images/1787039716_1680598718642be6bec0548.jpg', 0, NULL, 213, 250, 15, NULL),
+	(214, NULL, NULL, NULL, 'ICE AMERİCANO', NULL, NULL, 'SOĞUK KAHVELER', NULL, 185, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2021-01-01 00:00:00', NULL, NULL, NULL, '/images/urunler/images/1787039908_168744831464946afa75c59.jpeg', 0, NULL, 214, 250, 15, NULL),
+	(215, NULL, NULL, NULL, 'ICE CHOCOLATE', NULL, NULL, 'SOĞUK KAHVELER', NULL, 185, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2021-01-01 00:00:00', NULL, NULL, NULL, '/images/urunler/images/1787040057_168744840564946b55d0bdb.jpeg', 0, 'Siyah veya Beyaz olarak tercih edilir.', 215, 250, 15, NULL),
+	(216, NULL, NULL, NULL, 'AFFOGATO', NULL, NULL, 'SOĞUK KAHVELER', NULL, 220, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2021-01-01 00:00:00', NULL, NULL, NULL, '/images/urunler/images/1787040127_1680598922642be78ac95f8.jpg', 0, '1 top sade dondurma üzerine, double shot espresso dökülerek hazırlanır.', 216, 250, 15, NULL),
+	(217, NULL, NULL, NULL, 'BUBBLE TEA ICE LATTE', NULL, NULL, 'SOĞUK KAHVELER', NULL, 230, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2021-01-01 00:00:00', NULL, NULL, NULL, '/images/urunler/images/1787040416_168744839164946b47ab281.jpeg', 0, 'Mango ,Nane ,Misket Limonu', 217, 250, 15, NULL),
+	(218, NULL, NULL, NULL, 'OREO FRAPPE', NULL, NULL, 'FRAPPE', NULL, 250, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2021-01-01 00:00:00', NULL, NULL, NULL, '/images/urunler/images/1787040518_169038674164c14135dcb1f.jpeg', 0, NULL, 218, 250, 15, NULL),
+	(219, NULL, NULL, NULL, 'KARAMEL FRAPPE', NULL, NULL, 'FRAPPE', NULL, 250, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2021-01-01 00:00:00', NULL, NULL, NULL, '/images/urunler/images/1787040624_169038658964c1409dcf45e.jpeg', 0, NULL, 219, 250, 15, NULL),
+	(220, NULL, NULL, NULL, 'MOCHA FRAPPE', NULL, NULL, 'FRAPPE', NULL, 250, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2021-01-01 00:00:00', NULL, NULL, NULL, '/images/urunler/images/1787040767_169038703264c1425879d92.jpeg', 0, NULL, 220, 250, 15, NULL),
+	(221, NULL, NULL, NULL, 'ÇİLEK', NULL, NULL, 'FROZEN', NULL, 240, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2021-01-01 00:00:00', NULL, NULL, NULL, '/images/urunler/images/1787040926_169038690364c141d7d1747.jpeg', 0, NULL, 221, 250, 15, NULL),
+	(222, NULL, NULL, NULL, 'ŞEFTALİ', NULL, NULL, 'FROZEN', NULL, 240, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2021-01-01 00:00:00', NULL, NULL, NULL, '/images/urunler/images/1787041055_175456844968949701f3dea.jpeg', 0, NULL, 222, 250, 15, NULL),
+	(223, NULL, NULL, NULL, 'KARADUT', NULL, NULL, 'FROZEN', NULL, 240, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2021-01-01 00:00:00', NULL, NULL, NULL, '/images/urunler/images/1787041159_1754568403689496d3c8411.jpeg', 0, NULL, 223, 250, 15, NULL),
+	(224, NULL, NULL, NULL, 'MANGO', NULL, NULL, 'FROZEN', NULL, 240, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2021-01-01 00:00:00', NULL, NULL, NULL, '/images/urunler/images/1787041301_17543802866891b7fe127f2.jpeg', 0, NULL, 224, 250, 15, NULL),
+	(225, NULL, NULL, NULL, 'ANANAS', NULL, NULL, 'FROZEN', NULL, 240, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2021-01-01 00:00:00', NULL, NULL, NULL, '/images/urunler/images/1787041382_17543802866891b7fe127f2.jpeg', 0, NULL, 225, 250, 15, NULL),
+	(226, NULL, NULL, NULL, 'SMOOTHİE', NULL, NULL, 'SMOOTHİE', NULL, 260, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2021-01-01 00:00:00', NULL, NULL, NULL, '/images/urunler/images/1787100286_17806015796a21d2ebbfcf16a21d2ec2df75.jpg', 0, NULL, 225, 250, 15, NULL);
 
--- tablo yapısı dökülüyor mikaleyazilim_com_center.users
+-- tablo yapısı dökülüyor qrmenu_sepet_db.users
 CREATE TABLE IF NOT EXISTS `users` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `id_kullanici` int NOT NULL,
@@ -500,18 +515,17 @@ CREATE TABLE IF NOT EXISTS `users` (
   UNIQUE KEY `users_email_unique` (`email`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- mikaleyazilim_com_center.users: ~3 rows (yaklaşık) tablosu için veriler indiriliyor
 INSERT INTO `users` (`id`, `id_kullanici`, `name`, `email`, `yetki`, `kullanicitipi`, `subeyetki`, `email_verified_at`, `password`, `remember_token`, `created_at`, `updated_at`) VALUES
-	(1, 1, 'Test Kullanici', 'test1@example.com', '0', '1|2|3', '1', NULL, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', NULL, '2021-07-26 11:45:18', '2021-07-26 11:45:18'),
-(2, 2, 'Test Kullanici 2', 'test2@example.com', '1', '1|2|3', '1', NULL, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', NULL, '2021-07-26 11:45:18', '2021-07-26 11:45:18'),
-(3, 3, 'Test Kullanici 3', 'test3@example.com', '1', '1|2|3', NULL, NULL, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', NULL, NOW(), NOW());
+	(1, 1, 'Oğuzhan Karacabay', 'oguzhankrcb@gmail.com', 'tahsilat|odeme|satisrapor', '0', '1|2|3', '2021-07-26 11:45:18', '$2y$10$Se2TwX5YQkO2Torfy1miG.Aamu1fTTojULoIi6uFiJuwUe95RX2BK', 'e4gBfHbXFd', NULL, NULL),
+	(2, 2, 'Ender Eravcı', 'eeravci@gmail.com', 'tahsilat|odeme|satisrapor', '1', '1|2|3', '2021-07-26 11:45:18', '$2y$10$01QABqZMPx.RJSqub3bB1OGXKX99aj6IBSVkg8pfvdfUUh8RbQHDa', 'AOgKNyAMJq', NULL, NULL),
+	(3, 3, 'Fuat', 'Bilkay-47@hotmail.com', '123', '123', '1', NULL, '$2y$10$01QABqZMPx.RJSqub3bB1OGXKX99aj6IBSVkg8pfvdfUUh8RbQHDa', NULL, NULL, NULL);
 
--- tablo yapısı dökülüyor mikaleyazilim_com_center.waiter_calls
+-- tablo yapısı dökülüyor qrmenu_sepet_db.waiter_calls
 CREATE TABLE IF NOT EXISTS `waiter_calls` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `masa_ismi` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `masa_ismi` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `masa_id` bigint unsigned DEFAULT NULL,
-  `cagri_tipi` enum('garson_cagir','hesap_iste') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'garson_cagir',
+  `cagri_tipi` enum('garson_cagir','hesap_iste') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'garson_cagir',
   `cagri_zamani` timestamp NOT NULL,
   `pulled` tinyint(1) NOT NULL DEFAULT '0',
   `created_at` timestamp NULL DEFAULT NULL,
@@ -519,25 +533,35 @@ CREATE TABLE IF NOT EXISTS `waiter_calls` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- mikaleyazilim_com_center.waiter_calls: ~0 rows (yaklaşık) tablosu için veriler indiriliyor
-
--- tablo yapısı dökülüyor mikaleyazilim_com_center.web_orders
+-- tablo yapısı dökülüyor qrmenu_sepet_db.web_orders
 CREATE TABLE IF NOT EXISTS `web_orders` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `masa_isim` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `urun_adi` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `masa_isim` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `urun_adi` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `adet` int NOT NULL DEFAULT '1',
   `fiyat` decimal(10,2) NOT NULL DEFAULT '0.00',
   `ozellikler` json DEFAULT NULL,
-  `siparis_notu` text COLLATE utf8mb4_unicode_ci,
+  `siparis_notu` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `siparis_saati` timestamp NOT NULL,
   `pulled` tinyint(1) NOT NULL DEFAULT '0',
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- mikaleyazilim_com_center.web_orders: ~0 rows (yaklaşık) tablosu için veriler indiriliyor
+INSERT INTO `web_orders` (`id`, `masa_isim`, `urun_adi`, `adet`, `fiyat`, `ozellikler`, `siparis_notu`, `siparis_saati`, `pulled`, `created_at`, `updated_at`) VALUES
+	(1, 'Masa Bilinmiyor', 'SİNİ KAHVALTI', 1, 650.00, NULL, NULL, '2026-08-16 20:32:05', 0, '2026-08-16 20:32:05', '2026-08-16 20:32:05'),
+	(2, 'Masa Bilinmiyor', 'SİNİ KAHVALTI', 1, 650.00, NULL, NULL, '2026-08-16 21:19:22', 0, '2026-08-16 21:19:22', '2026-08-16 21:19:22'),
+	(3, 'Masa Bilinmiyor', 'AVOKADO EKMEK', 1, 380.00, NULL, NULL, '2026-08-16 21:26:44', 0, '2026-08-16 21:26:44', '2026-08-16 21:26:44'),
+	(4, 'Masa Bilinmiyor', 'AVOKADO EKMEK', 1, 380.00, NULL, NULL, '2026-08-16 21:31:30', 0, '2026-08-16 21:31:30', '2026-08-16 21:31:30'),
+	(5, 'Masa 2', 'PANKEK KAHVALTI', 1, 320.00, NULL, NULL, '2026-08-16 21:38:41', 0, '2026-08-16 21:38:41', '2026-08-16 21:38:41'),
+	(6, 'Masa 2', 'AVOKADO EKMEK', 1, 380.00, NULL, NULL, '2026-08-17 13:43:06', 0, '2026-08-17 13:43:06', '2026-08-17 13:43:06'),
+	(7, 'Masa 2', 'HAŞLANMIŞ YUMURTALI SPORCU KAHVALTI', 1, 320.00, NULL, NULL, '2026-08-17 14:36:29', 0, '2026-08-17 14:36:29', '2026-08-17 14:36:29'),
+	(8, 'Masa 2', 'AVOKADO EKMEK', 1, 380.00, NULL, NULL, '2026-08-17 14:57:22', 0, '2026-08-17 14:57:22', '2026-08-17 14:57:22'),
+	(9, 'Masa 2', 'AVOKADO EKMEK', 1, 380.00, NULL, NULL, '2026-08-17 16:13:16', 0, '2026-08-17 16:13:16', '2026-08-17 16:13:16'),
+	(10, 'Masa 2', 'HAŞLANMIŞ YUMURTALI SPORCU KAHVALTI', 1, 320.00, NULL, NULL, '2026-08-17 16:14:28', 0, '2026-08-17 16:14:28', '2026-08-17 16:14:28'),
+	(11, 'Masa 2', 'ÇIRPILMIŞ YUMURTALI SPORCU KAHVALTI', 1, 320.00, NULL, NULL, '2026-08-19 09:56:16', 0, '2026-08-19 09:56:16', '2026-08-19 09:56:16'),
+	(12, 'Masa 2', 'HAŞLANMIŠ YUMURTALI SPORCU KAHVALTI', 1, 320.00, NULL, NULL, '2026-08-19 09:59:13', 0, '2026-08-19 09:59:13', '2026-08-19 09:59:13');
 
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
