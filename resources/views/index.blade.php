@@ -3,10 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Center Cafe | Dijital Menü</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#047857">
 
     <script>
         tailwind.config = {
@@ -19,8 +22,18 @@
         }
     </script>
     <style>
-        .hide-scroll::-webkit-scrollbar { display: none; }
-        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+        .visible-scroll::-webkit-scrollbar { height: 8px; }
+        .visible-scroll::-webkit-scrollbar-track { background: #e2e8f0; border-radius: 9999px; }
+        .visible-scroll::-webkit-scrollbar-thumb { background: #D4AF37; border-radius: 9999px; }
+        .visible-scroll::-webkit-scrollbar-thumb:hover { background: #047857; }
+        .visible-scroll {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            touch-action: pan-x;
+            scrollbar-width: thin;
+            scrollbar-color: #D4AF37 #e2e8f0;
+        }
+
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .fade-in { animation: fadeIn 0.4s ease-out forwards; }
         @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
@@ -31,8 +44,9 @@
         .globe-spin { animation: spinY 3s linear infinite; transform-style: preserve-3d; }
     </style>
 </head>
-<body class="bg-brandBg text-brandDark font-sans antialiased min-h-screen flex flex-col">
+<body class="bg-brandBg text-brandDark font-sans antialiased min-h-screen flex flex-col overflow-x-hidden">
 
+    <!-- Splash Açılış -->
     <div class="splash-screen fixed inset-0 z-[100] bg-brandGreen flex flex-col items-center justify-center">
         <svg class="globe-spin w-20 h-20 text-brandGold mb-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <circle cx="12" cy="12" r="10"></circle>
@@ -42,92 +56,108 @@
         <p class="text-brandGold mt-3 tracking-[0.2em] font-light text-sm text-center uppercase">Lezzetin Merkezine<br>Hoş Geldiniz</p>
     </div>
 
-    <div id="toast" class="fixed top-8 left-1/2 -translate-x-1/2 bg-brandGreen text-white px-6 py-3 rounded-full shadow-2xl transition-all duration-300 opacity-0 translate-y-[-20px] pointer-events-none z-[300] font-bold text-sm flex items-center gap-2">
-        <i class="fa-solid fa-check-circle text-brandGold"></i> <span id="toast-message">Garson çağırıldı!</span>
+    <!-- Ortak Bildirim (Toast) Sistemi -->
+    <div id="toast" class="fixed top-8 left-1/2 -translate-x-1/2 bg-brandGreen text-white px-6 py-3 rounded-full shadow-2xl transition-all duration-300 opacity-0 translate-y-[-20px] pointer-events-none z-[350] font-bold text-sm flex items-center gap-2">
+        <span id="toast-message"></span>
     </div>
 
     <div class="w-full max-w-7xl mx-auto px-4 md:px-8 flex flex-col flex-1 relative pb-24">
 
-        <header class="sticky top-0 z-[60] bg-brandBg/95 backdrop-blur-md flex justify-between items-start py-4 md:py-6 border-b border-brandBlue/20 shadow-sm transition-all px-4 md:px-0 -mx-4 md:mx-0">
-            <div class="flex items-center gap-3">
-                <svg class="globe-spin w-10 h-10 text-brandGold" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <path d="M2 12h20 M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
-                </svg>
-                <div class="flex flex-col">
-                    <span id="site-title" class="font-serif font-bold text-2xl tracking-[0.1em] uppercase text-brandGreen leading-none drop-shadow-sm">Center</span>
-                    <span id="site-subtitle" class="text-[0.65rem] font-bold text-brandBlue tracking-widest uppercase mt-1">Cafe & Bistro</span>
+        <header class="sticky top-0 z-[60] bg-brandBg/95 backdrop-blur-md flex flex-col md:flex-row justify-between items-center py-4 md:py-6 border-b border-brandBlue/20 shadow-sm transition-all gap-4">
+            <div class="flex items-center gap-3 w-full md:w-auto justify-between md:justify-start">
+                <div class="flex items-center gap-3">
+                    <svg class="globe-spin w-10 h-10 text-brandGold" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M2 12h20 M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                    </svg>
+                    <div class="flex flex-col">
+                        <span id="site-title" class="font-serif font-bold text-2xl tracking-[0.1em] uppercase text-brandGreen leading-none drop-shadow-sm">Center</span>
+                        <span id="site-subtitle" class="text-[0.65rem] font-bold text-brandBlue tracking-widest uppercase mt-1">Cafe & Bistro</span>
+                    </div>
                 </div>
             </div>
 
-            <div class="flex flex-col items-end gap-2 mt-1">
-                <nav class="flex gap-4 md:gap-6 text-brandBlue font-semibold text-sm items-center">
-                    <button onclick="switchTab('home')" id="nav-home" class="text-brandGreen border-b-2 border-brandGreen pb-1 transition-all">Vitrin</button>
-                    <button onclick="switchTab('menu')" id="nav-menu" class="hover:text-brandGreen border-b-2 border-transparent hover:border-brandGreen pb-1 transition-all">Menü</button>
-                    <a href="/admin" class="flex items-center gap-1 text-brandBlue hover:text-brandGreen transition-all bg-brandBlue/10 px-3 py-1.5 rounded-full"><i class="fa-solid fa-lock text-xs"></i> Admin</a>
-                    <a href="https://search.google.com/local/writereview?placeid=ChIJN1t_tDeuEmsRUsoyG83frY4" target="_blank" id="btn-yorum-yap" class="flex items-center gap-1 text-brandGold hover:text-brandGreen transition-all bg-brandGold/10 px-3 py-1.5 rounded-full"><i class="fa-solid fa-star text-xs"></i> Yorum Yap</a>
-                </nav>
-            </div>
+            <nav class="flex flex-wrap justify-center gap-3 md:gap-6 text-brandBlue font-semibold text-xs md:text-sm items-center">
+                <button onclick="switchTab('home')" id="nav-home" class="text-brandGreen border-b-2 border-brandGreen pb-1 transition-all">Vitrin</button>
+                <button onclick="switchTab('menu')" id="nav-menu" class="hover:text-brandGreen border-b-2 border-transparent hover:border-brandGreen pb-1 transition-all">Menü</button>
+                <a href="/admin" class="flex items-center gap-1 text-brandBlue hover:text-brandGreen transition-all bg-brandBlue/10 px-3 py-1.5 rounded-full"><i class="fa-solid fa-lock text-xs"></i> Admin</a>
+                <a href="https://search.google.com/local/writereview?placeid=ChIJN1t_tDeuEmsRUsoyG83frY4" target="_blank" id="btn-yorum-yap" class="flex items-center gap-1 text-brandGold hover:text-brandGreen transition-all bg-brandGold/10 px-3 py-1.5 rounded-full"><i class="fa-solid fa-star text-xs"></i> Yorum Yap</a>
+            </nav>
         </header>
 
-        <div id="home-section" class="flex-1 py-12 flex flex-col md:flex-row gap-10 fade-in">
-            <div class="flex-1 flex flex-col justify-center">
-                <h1 class="text-5xl md:text-7xl font-serif font-bold uppercase tracking-wide mb-6 text-brandGreen drop-shadow-sm">Lezzetin<br>Merkezi</h1>
-                <p class="text-brandBlue text-lg md:text-xl font-light mb-8 max-w-lg">Dünya mutfağından seçkin lezzetler, taptaze kahveler ve unutulmaz anlar için doğru yerdesiniz.</p>
-                <div class="flex gap-4 mb-10">
+        <!-- Vitrin (Home) Section -->
+        <div id="home-section" class="flex-1 py-6 md:py-12 flex flex-col md:flex-row gap-8 md:gap-10 fade-in items-center">
+            <div class="flex-1 flex flex-col justify-center text-center md:text-left w-full">
+                <h1 id="vitrin-slogan" class="text-4xl md:text-7xl font-serif font-bold uppercase tracking-wide mb-4 md:mb-6 text-brandGreen drop-shadow-sm">Lezzetin<br>Merkezi</h1>
+                <p id="vitrin-aciklama" class="text-brandBlue text-base md:text-xl font-light mb-6 md:mb-8 max-w-lg mx-auto md:mx-0">Dünya mutfağından seçkin lezzetler, taptaze kahveler ve unutulmaz anlar için doğru yerdesiniz.</p>
+                <div class="flex justify-center md:justify-start gap-4 mb-8 md:mb-10">
                     <button onclick="switchTab('menu')" class="bg-brandGold text-white px-8 py-3 rounded-full text-sm font-bold tracking-widest uppercase hover:bg-brandGreen hover:shadow-lg transition-all transform hover:-translate-y-1">Menüyü Keşfet</button>
                 </div>
 
-                <div class="bg-white p-6 md:p-8 rounded-3xl shadow-lg border border-brandBlue/10 flex flex-col gap-4">
+                <div class="bg-white p-5 md:p-8 rounded-3xl shadow-lg border border-brandBlue/10 flex flex-col gap-4 text-left">
                     <h3 class="font-bold text-brandGreen uppercase tracking-wider mb-1 border-b border-brandBlue/10 pb-3">İşletme Bilgileri</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="flex flex-col gap-3">
-                            <p id="info-adres" class="text-sm font-medium flex items-center gap-3"><i class="fa-solid fa-location-dot text-brandGold text-lg w-5"></i> Merkez Mah. No:123</p>
-                            <p id="info-telefon" class="text-sm font-medium flex items-center gap-3"><i class="fa-solid fa-phone text-brandGold text-lg w-5"></i> +90 555 123 45 67</p>
+                            <p id="info-adres" class="text-xs md:text-sm font-medium flex items-center gap-3"><i class="fa-solid fa-location-dot text-brandGold text-lg w-5"></i> Merkez Mah. No:123</p>
+                            <p id="info-telefon" class="text-xs md:text-sm font-medium flex items-center gap-3"><i class="fa-solid fa-phone text-brandGold text-lg w-5"></i> +90 555 123 45 67</p>
                         </div>
                         <div class="flex flex-col gap-3">
-                            <p class="text-sm font-medium flex items-center gap-3"><i class="fa-regular fa-clock text-brandGold text-lg w-5"></i> Her Gün: 08:30 - 23:30</p>
-                            <p id="info-wifi" class="text-sm font-medium flex items-center gap-3"><i class="fa-solid fa-wifi text-brandGold text-lg w-5"></i> Şifre: <span class="font-bold tracking-wider">center2026</span></p>
+                            <p class="text-xs md:text-sm font-medium flex items-center gap-3"><i class="fa-regular fa-clock text-brandGold text-lg w-5"></i> Her Gün: 08:30 - 23:30</p>
+                            <p id="info-wifi" class="text-xs md:text-sm font-medium flex items-center gap-3"><i class="fa-solid fa-wifi text-brandGold text-lg w-5"></i> Şifre: <span class="font-bold tracking-wider">center2026</span></p>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="flex-1 hidden md:flex relative justify-end">
-                <div class="w-4/5 h-[500px] rounded-[3rem] overflow-hidden shadow-2xl relative">
-                    <img src="/images/OIP.jpg.webp" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800&fit=crop'">
+
+            <div class="flex-1 w-full flex justify-center md:justify-end">
+                <div class="w-full max-w-md md:max-w-none md:w-4/5 h-64 md:h-[500px] rounded-[2rem] md:rounded-[3rem] overflow-hidden shadow-2xl relative">
+                    <img id="vitrin-ana-resim" src="/images/OIP.jpg.webp" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800&fit=crop'">
                     <div class="absolute inset-0 bg-gradient-to-t from-brandGreen/60 to-transparent"></div>
                 </div>
             </div>
         </div>
 
+        <!-- Menü Section -->
         <div id="menu-section" class="flex-1 hidden flex-col py-8 fade-in">
-            <div class="flex gap-2 mb-8 w-full max-w-3xl mx-auto">
-                <div class="flex-1 bg-white rounded-full shadow-md px-6 h-14 flex items-center border border-brandBlue/20">
+            <div class="flex gap-2 mb-10 w-full max-w-3xl mx-auto">
+                <div class="flex-1 bg-white rounded-full shadow-sm px-6 h-14 flex items-center border border-black/5">
                     <i class="fa-solid fa-search text-brandBlue mr-3"></i>
                     <input type="text" id="menu-arama" placeholder="Menüde lezzet arayın..." oninput="tetikleAramaVeFiltre()" class="w-full bg-transparent outline-none text-base font-medium text-brandDark">
                 </div>
-                <button onclick="openFilterModal()" class="bg-brandGold text-white px-6 rounded-full shadow-md h-14 flex items-center gap-2 font-bold hover:bg-brandGreen transition-colors">
+                <button id="btn-fav-filter" onclick="gosterFavoriler()" class="bg-white text-brandBlue border border-black/5 px-5 rounded-full shadow-sm h-14 flex items-center justify-center font-bold hover:bg-red-50 hover:text-red-500 transition-colors">
+                    <i class="fa-solid fa-heart text-xl"></i>
+                </button>
+                <button onclick="openFilterModal()" class="bg-brandGold text-white px-6 rounded-full shadow-sm h-14 flex items-center gap-2 font-bold hover:bg-brandGreen transition-colors">
                     <i class="fa-solid fa-sliders"></i> <span class="hidden md:inline">Filtrele</span>
                 </button>
             </div>
 
-            <div class="relative mb-6"><div id="ana-kategoriler" class="flex gap-4 overflow-x-auto hide-scroll pb-4"></div></div>
-            <div id="alt-kategoriler" class="flex gap-2 overflow-x-auto hide-scroll pb-6 mb-2"></div>
+            <div class="relative mb-6">
+                <div id="ana-kategoriler" class="flex gap-4 overflow-x-auto visible-scroll pb-4 pt-1 px-1"></div>
+            </div>
+            <div id="alt-kategoriler" class="flex gap-2 overflow-x-auto visible-scroll pb-6 pt-1 px-1 mb-2"></div>
 
             <div class="flex justify-between items-end mb-8 border-b-2 border-brandGold/30 pb-3">
                 <h2 id="kategori-baslik" class="text-3xl font-serif font-bold text-brandGreen uppercase tracking-wide">Kategori</h2>
                 <span id="aktif-filtre-uyarisi" class="text-xs font-bold text-amber-500 bg-amber-50 px-3 py-1 rounded-full hidden">Filtreler Aktif <i class="fa-solid fa-filter"></i></span>
             </div>
 
-            <div id="urun-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+            <div id="urun-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-7"></div>
             <div id="tavsiye-alani" class="mt-4"></div>
         </div>
     </div>
 
-    <button onclick="openWaiterModal()" class="fixed bottom-6 right-6 md:bottom-10 md:right-10 bg-brandGold text-white w-14 h-14 md:w-16 md:h-16 rounded-full shadow-2xl flex items-center justify-center hover:bg-brandGreen transition-all z-50">
-        <i class="fa-solid fa-bell text-2xl"></i>
+    <!-- Garson Çağır Butonu -->
+    <button onclick="openWaiterModal()" class="fixed bottom-6 right-6 md:bottom-10 md:right-10 bg-brandBlue text-white w-14 h-14 md:w-16 md:h-16 rounded-full shadow-2xl flex items-center justify-center hover:bg-brandDark transition-all z-40">
+        <i class="fa-solid fa-bell text-xl"></i>
     </button>
 
+    <!-- Hesap İste Butonu -->
+    <button onclick="openBillModal()" class="fixed bottom-[5.5rem] right-6 md:bottom-[7.5rem] md:right-10 bg-brandGold text-white w-12 h-12 md:w-14 md:h-14 rounded-full shadow-xl flex items-center justify-center hover:bg-brandGreen transition-all z-40">
+        <i class="fa-solid fa-receipt text-lg"></i>
+    </button>
+
+    <!-- Filtre Modal -->
     <div id="filter-modal" class="fixed inset-0 z-[250] bg-brandDark/70 hidden items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-white rounded-3xl p-6 md:p-8 w-full max-w-sm relative shadow-2xl slide-up border-t-4 border-brandGold">
             <button onclick="closeFilterModal()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition-colors w-8 h-8 flex items-center justify-center rounded-full bg-gray-50"><i class="fa-solid fa-xmark text-lg"></i></button>
@@ -164,6 +194,7 @@
         </div>
     </div>
 
+    <!-- Garson Modal -->
     <div id="waiter-modal" class="fixed inset-0 z-[250] bg-brandDark/70 hidden items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-white rounded-3xl p-6 md:p-8 w-full max-w-sm relative shadow-2xl slide-up border-t-4 border-brandGold">
             <button onclick="closeWaiterModal()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition-colors w-8 h-8 flex items-center justify-center rounded-full bg-gray-50"><i class="fa-solid fa-xmark text-lg"></i></button>
@@ -175,6 +206,19 @@
         </div>
     </div>
 
+    <!-- Hesap İste Modal -->
+    <div id="bill-modal" class="fixed inset-0 z-[250] bg-brandDark/70 hidden items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl p-6 md:p-8 w-full max-w-sm relative shadow-2xl slide-up border-t-4 border-brandGold">
+            <button onclick="closeBillModal()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition-colors w-8 h-8 flex items-center justify-center rounded-full bg-gray-50"><i class="fa-solid fa-xmark text-lg"></i></button>
+            <div class="w-16 h-16 bg-brandGold/10 text-brandGold rounded-full flex items-center justify-center text-3xl mx-auto mb-4"><i class="fa-solid fa-receipt"></i></div>
+            <h3 class="text-xl font-bold text-brandDark mb-2 text-center uppercase tracking-wide">Hesabınızı İsteyin</h3>
+            <p class="text-sm text-gray-500 mb-6 text-center font-medium">Hesap istemeden önce lütfen bulunduğunuz masa numarasını girin.</p>
+            <input type="text" id="bill-table-no" placeholder="Örn: 5" class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 mb-6 focus:outline-none focus:border-brandGreen font-black text-center text-xl text-brandDark transition-colors">
+            <button onclick="confirmRequestBill()" class="w-full bg-brandGold text-white py-3.5 rounded-xl font-bold uppercase tracking-widest text-sm hover:bg-brandGreen transition-colors shadow-lg flex items-center justify-center gap-2"><i class="fa-solid fa-check"></i> Hesap İste</button>
+        </div>
+    </div>
+
+    <!-- Ürün Detay Modal -->
     <div id="product-modal" class="fixed inset-0 z-[200] bg-brandDark/70 hidden items-end md:items-center justify-center p-0 md:p-4 backdrop-blur-sm">
         <div class="slide-up bg-white w-full md:max-w-xl overflow-hidden shadow-2xl relative flex flex-col rounded-t-[2rem] md:rounded-[2rem] max-h-[90vh]">
             <button onclick="closeModal()" class="absolute top-4 right-4 bg-brandBg/90 text-brandGreen w-10 h-10 rounded-full flex items-center justify-center shadow-md z-10 hover:bg-brandGold hover:text-white transition-all"><i class="fa-solid fa-xmark text-lg"></i></button>
@@ -183,7 +227,7 @@
                 <div class="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-black/60 to-transparent"></div>
                 <h2 id="modal-title" class="absolute bottom-4 left-6 text-2xl font-serif font-bold text-white uppercase drop-shadow-md">Ürün Adı</h2>
             </div>
-            <div class="p-6 md:p-8 overflow-y-auto hide-scroll">
+            <div class="p-6 md:p-8 overflow-y-auto visible-scroll">
                 <div class="flex flex-wrap items-center gap-4 mb-6">
                     <span id="modal-price" class="text-brandGreen font-black text-2xl">₺0.00</span>
                     <span id="modal-cal" class="text-xs font-bold text-white bg-brandGold px-3 py-1.5 rounded-full flex items-center gap-1.5"><i class="fa-solid fa-fire"></i> 0 kcal</span>
@@ -200,13 +244,33 @@
     </div>
 
     <script>
+        function showToast(message, icon = 'fa-check-circle', color = 'text-brandGold') {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-message').innerHTML = `<i class="fa-solid ${icon} ${color} mr-1"></i> ${message}`;
+            toast.classList.remove('opacity-0', 'translate-y-[-20px]');
+            toast.classList.add('opacity-100', 'translate-y-0');
+            setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'translate-y-[-20px]');
+            }, 3000);
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             const urlParams = new URLSearchParams(window.location.search);
             const masa = urlParams.get('masa');
             if (masa) {
                 localStorage.setItem('aktif_masa', masa);
+                localStorage.setItem('aktif_masa_zaman', Date.now().toString());
                 const subtitle = document.getElementById('site-subtitle');
                 if(subtitle) subtitle.textContent = `Center Cafe | Masa ${masa}`;
+            }
+
+            const aktifMasa = localStorage.getItem('aktif_masa');
+            if(aktifMasa) {
+                const waiterInput = document.getElementById('waiter-table-no');
+                if(waiterInput) waiterInput.value = aktifMasa;
+                const billInput = document.getElementById('bill-table-no');
+                if(billInput) billInput.value = aktifMasa;
             }
 
             fetch('/api/ayarlar').then(res => res.json()).then(data => {
@@ -215,6 +279,18 @@
                         const titleEl = document.getElementById('site-title');
                         if(titleEl) titleEl.textContent = data.sirket_adi.split(' ')[0];
                         document.title = data.sirket_adi + " | Dijital Menü";
+                    }
+                    if(data.slogan) {
+                        const sloganEl = document.getElementById('vitrin-slogan');
+                        if(sloganEl) sloganEl.innerHTML = data.slogan.replace(/\n/g, '<br>');
+                    }
+                    if(data.alt_aciklama) {
+                        const aciklamaEl = document.getElementById('vitrin-aciklama');
+                        if(aciklamaEl) aciklamaEl.textContent = data.alt_aciklama;
+                    }
+                    if(data.vitrin_gorsel_url) {
+                        const imgEl = document.getElementById('vitrin-ana-resim');
+                        if(imgEl) imgEl.src = data.vitrin_gorsel_url;
                     }
                     if(data.wifi_sifresi) {
                         const wifiEl = document.getElementById('info-wifi');
@@ -235,7 +311,6 @@
                 }
             }).catch(err => console.log("Ayarlar yüklenemedi."));
 
-            // Splash ekranını her ihtimale karşı JS ile de garanti alalım
             window.addEventListener('load', function() {
                 setTimeout(function() {
                     var splash = document.querySelector('.splash-screen');
@@ -256,55 +331,125 @@
             document.getElementById('nav-menu').className = tabId === 'menu' ? 'text-brandGreen border-b-2 border-brandGreen pb-1 transition-all' : 'text-brandBlue hover:text-brandGreen border-b-2 border-transparent hover:border-brandGreen pb-1 transition-all';
         }
 
-        // --- GARSON ÇAĞIRMA (Modal) ---
+        // ---- Garson Çağır ----
         function openWaiterModal() {
             document.getElementById('waiter-modal').classList.remove('hidden');
             document.getElementById('waiter-modal').classList.add('flex');
-            document.getElementById('waiter-table-no').value = '';
+            const aktifMasa = localStorage.getItem('aktif_masa') || '';
+            document.getElementById('waiter-table-no').value = aktifMasa;
             document.getElementById('waiter-table-no').focus();
         }
-
         function closeWaiterModal() {
             document.getElementById('waiter-modal').classList.add('hidden');
             document.getElementById('waiter-modal').classList.remove('flex');
         }
-
         function confirmCallWaiter() {
-            const tableNo = document.getElementById('waiter-table-no').value || localStorage.getItem('aktif_masa') || 'Bilinmiyor';
+            let zamanlar = JSON.parse(localStorage.getItem('center_garson_cagri_zamanlari')) || [];
+            const simdi = Date.now();
+            zamanlar = zamanlar.filter(t => simdi - t < 60000);
+            if (zamanlar.length >= 20) {
+                showToast("Çok fazla istek gönderdiniz, lütfen 1 dakika bekleyin.", "fa-triangle-exclamation", "text-red-500");
+                return;
+            }
+            zamanlar.push(simdi);
+            localStorage.setItem('center_garson_cagri_zamanlari', JSON.stringify(zamanlar));
+
+            const tableNo = document.getElementById('waiter-table-no').value.trim() || localStorage.getItem('aktif_masa') || 'Bilinmiyor';
+            localStorage.setItem('aktif_masa', tableNo);
             closeWaiterModal();
 
             let cagriListesi = JSON.parse(localStorage.getItem('center_garson_cagrilari')) || [];
             cagriListesi.push({
                 masa: tableNo,
-                zaman: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })
+                tip: 'garson_cagir',
+                zaman: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
+                timestamp: Date.now()
             });
             localStorage.setItem('center_garson_cagrilari', JSON.stringify(cagriListesi));
-
-            const toast = document.getElementById('toast');
-            document.getElementById('toast-message').textContent = `Masa ${tableNo} için garson çağırıldı!`;
-            toast.classList.remove('opacity-0', 'translate-y-[-20px]');
-            toast.classList.add('opacity-100', 'translate-y-0');
-            setTimeout(() => {
-                toast.classList.remove('opacity-100', 'translate-y-0');
-                toast.classList.add('opacity-0', 'translate-y-[-20px]');
-            }, 3000);
+            showToast(`Masa ${tableNo} için garson çağırıldı!`);
         }
 
-        // --- AKILLI FİLTRELEME VE ARAMA MANTIĞI ---
+        // ---- Hesap İste ----
+        function openBillModal() {
+            document.getElementById('bill-modal').classList.remove('hidden');
+            document.getElementById('bill-modal').classList.add('flex');
+            const aktifMasa = localStorage.getItem('aktif_masa') || '';
+            document.getElementById('bill-table-no').value = aktifMasa;
+            document.getElementById('bill-table-no').focus();
+        }
+        function closeBillModal() {
+            document.getElementById('bill-modal').classList.add('hidden');
+            document.getElementById('bill-modal').classList.remove('flex');
+        }
+        function confirmRequestBill() {
+            let zamanlar = JSON.parse(localStorage.getItem('center_garson_cagri_zamanlari')) || [];
+            const simdi = Date.now();
+            zamanlar = zamanlar.filter(t => simdi - t < 60000);
+            if (zamanlar.length >= 20) {
+                showToast("Çok fazla istek gönderdiniz, lütfen 1 dakika bekleyin.", "fa-triangle-exclamation", "text-red-500");
+                return;
+            }
+            zamanlar.push(simdi);
+            localStorage.setItem('center_garson_cagri_zamanlari', JSON.stringify(zamanlar));
+
+            const tableNo = document.getElementById('bill-table-no').value.trim() || localStorage.getItem('aktif_masa') || 'Bilinmiyor';
+            localStorage.setItem('aktif_masa', tableNo);
+            closeBillModal();
+
+            let cagriListesi = JSON.parse(localStorage.getItem('center_garson_cagrilari')) || [];
+            cagriListesi.push({
+                masa: tableNo,
+                tip: 'hesap_iste',
+                zaman: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
+                timestamp: Date.now()
+            });
+            localStorage.setItem('center_garson_cagrilari', JSON.stringify(cagriListesi));
+            showToast(`Masa ${tableNo} için hesap istendi!`);
+        }
+
         let currentAnaKat = '';
         let currentAltKat = '';
         let activeFilters = { maxFiyat: 0, glutensiz: false, alerjensiz: false };
+        let sadeceFavoriler = false;
+
+        window.gosterFavoriler = function() {
+            sadeceFavoriler = !sadeceFavoriler;
+            const btn = document.getElementById('btn-fav-filter');
+            if(sadeceFavoriler) {
+                btn.classList.add('bg-red-500', 'text-white', 'border-red-500');
+                btn.classList.remove('bg-white', 'text-brandBlue', 'border-black/5');
+                showToast("Sadece favori ürünleriniz listeleniyor.", "fa-heart", "text-red-500");
+            } else {
+                btn.classList.remove('bg-red-500', 'text-white', 'border-red-500');
+                btn.classList.add('bg-white', 'text-brandBlue', 'border-black/5');
+            }
+            tetikleAramaVeFiltre();
+        }
+
+        window.toggleFavori = function(e, index) {
+            e.stopPropagation();
+            const urun = globalUrunler[index];
+            let favs = JSON.parse(localStorage.getItem('center_favoriler')) || [];
+            const idx = favs.indexOf(urun.UrunAd);
+            if(idx > -1) {
+                favs.splice(idx, 1);
+                showToast(urun.UrunAd + " favorilerden çıkarıldı.", "fa-heart-crack", "text-gray-400");
+            } else {
+                favs.push(urun.UrunAd);
+                showToast(urun.UrunAd + " favorilere eklendi! ❤️", "fa-heart", "text-red-500");
+            }
+            localStorage.setItem('center_favoriler', JSON.stringify(favs));
+            tetikleAramaVeFiltre();
+        }
 
         function openFilterModal() {
             document.getElementById('filter-modal').classList.remove('hidden');
             document.getElementById('filter-modal').classList.add('flex');
         }
-
         function closeFilterModal() {
             document.getElementById('filter-modal').classList.add('hidden');
             document.getElementById('filter-modal').classList.remove('flex');
         }
-
         function applyFilters() {
             const priceVal = document.getElementById('filter-price').value;
             activeFilters.maxFiyat = priceVal ? parseFloat(priceVal) : 0;
@@ -318,10 +463,8 @@
             } else {
                 document.getElementById('aktif-filtre-uyarisi').classList.add('hidden');
             }
-
             tetikleAramaVeFiltre();
         }
-
         function clearFilters() {
             document.getElementById('filter-price').value = '';
             document.getElementById('filter-gluten').checked = false;
@@ -333,7 +476,6 @@
             closeFilterModal();
             tetikleAramaVeFiltre();
         }
-
         function tetikleAramaVeFiltre() {
             if(currentAnaKat && currentAltKat) {
                 renderUrunler(currentAnaKat, currentAltKat);
@@ -371,7 +513,6 @@
             document.getElementById('product-modal').classList.remove('hidden');
             document.getElementById('product-modal').classList.add('flex');
         }
-
         function closeModal() {
             document.getElementById('product-modal').classList.add('hidden');
             document.getElementById('product-modal').classList.remove('flex');
@@ -380,23 +521,19 @@
         let globalUrunler = [];
 
         document.addEventListener('DOMContentLoaded', function() {
-            const sabitKategoriler = [
-                { ad: "KAHVALTILAR", resim: "/images/urunler/168762219164971235.jpg", fallback: "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=500&h=300&fit=crop" },
-                { ad: "TATLILAR", resim: "/images/urunler/1703053931650cbf0b23f90.jpeg", fallback: "https://images.unsplash.com/photo-1579306194872-64d3b7bac4c2?w=500&h=300&fit=crop" },
-                { ad: "SICAK İÇECEKLER", resim: "/images/urunler/1785535612.jpg", fallback: "https://images.unsplash.com/photo-1541167760496-1628856ab772?w=500&h=300&fit=crop" },
-                { ad: "SOĞUK İÇECEKLER", resim: "/images/urunler/1696077430651_167b26084.jpg", fallback: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=500&h=300&fit=crop" },
-                { ad: "DONDURMALAR", resim: "/images/urunler/1751035816685-e1a518ef4.jpeg", fallback: "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&h=300&fit=crop" },
-                { ad: "GÖZLEME & TOST", resim: "/images/urunler/1687542100649_3540263b.jpeg", fallback: "https://images.unsplash.com/photo-1528736235302-52922df5c122?w=500&h=300&fit=crop" }
-            ];
+            let sabitKategoriler = [];
+            let altHiyerarsi = {};
 
-            const altHiyerarsi = {
-                "KAHVALTILAR": ["KAHVALTILAR", "SAHANDA", "OMLET", "KENDİ KAHVALTINI YARAT"],
-                "TATLILAR": ["TATLILAR", "SÜTLÜ TATLI", "PASTALAR", "ŞERBETLİ TATLI", "KİLOLUK ÜRÜNLER", "KEKLER", "İLAVELER"],
-                "SICAK İÇECEKLER": ["SICAK İÇECEKLER", "DÜNYA KAHVELERİ", "BİTKİ ÇAYI", "İLAVELER"],
-                "SOĞUK İÇECEKLER": ["SOĞUK İÇECEKLER", "SOĞUK KAHVELER", "MEŞRUBATLAR", "FROZEN", "SMOOTHIE", "MILKSHAKE", "FRAPPE", "KOKTEYL & DETOX"],
-                "DONDURMALAR": ["DONDURMALAR"],
-                "GÖZLEME & TOST": ["GÖZLEME & TOST", "GÖZLEMELER", "TOSTLAR", "KÖYLUM (BAZLAMA) TOSTLAR", "KÖY EKMEĞİ TOSTLAR", "APERATİFLER"]
-            };
+            function getKategoriGorseli(ad) {
+                const key = (ad || '').toLocaleUpperCase('tr-TR');
+                if (key.includes('KAHVALTI')) return "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=500&h=300&fit=crop";
+                if (key.includes('TATLI') || key.includes('PASTA') || key.includes('KEK')) return "https://images.unsplash.com/photo-1579306194872-64d3b7bac4c2?w=500&h=300&fit=crop";
+                if (key.includes('SICAK') || key.includes('KAHVE') || key.includes('ÇAY')) return "https://images.unsplash.com/photo-1541167760496-1628856ab772?w=500&h=300&fit=crop";
+                if (key.includes('SOĞUK') || key.includes('İÇECEK') || key.includes('FRAPPE') || key.includes('SHAKE') || key.includes('SMOOTHIE')) return "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=500&h=300&fit=crop";
+                if (key.includes('DONDURMA')) return "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&h=300&fit=crop";
+                if (key.includes('GÖZLEME') || key.includes('TOST')) return "https://images.unsplash.com/photo-1528736235302-52922df5c122?w=500&h=300&fit=crop";
+                return "https://images.unsplash.com/photo-1544025162-d76694265947?w=500&h=300&fit=crop";
+            }
 
             const anaKatAlani = document.getElementById('ana-kategoriler');
             const altKatAlani = document.getElementById('alt-kategoriler');
@@ -404,22 +541,60 @@
             const tavsiyeAlani = document.getElementById('tavsiye-alani');
             const baslik = document.getElementById('kategori-baslik');
 
-            sabitKategoriler.forEach(kat => {
-                const div = document.createElement('div');
-                div.className = "flex-shrink-0 w-36 md:w-48 h-20 md:h-24 rounded-2xl relative overflow-hidden cursor-pointer shadow-md border border-brandBlue/10 group ana-kat-btn";
-                div.innerHTML = `
-                    <img src="${kat.resim}" onerror="this.onerror=null; this.src='${kat.fallback}';" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
-                    <div class="absolute inset-0 bg-brandDark/50 group-hover:bg-brandGreen/60 transition-colors flex items-center justify-center p-2 text-center">
-                        <span class="text-white font-serif font-bold text-xs md:text-sm uppercase tracking-widest drop-shadow-md z-10">${kat.ad}</span>
-                    </div>
-                    <div class="kat-overlay absolute inset-0 border-4 border-transparent rounded-2xl transition-all"></div>`;
-                anaKatAlani.appendChild(div);
-            });
-
             fetch('/api/menu').then(res => res.json()).then(data => {
                 if(data && data.urunler) {
                     globalUrunler = data.urunler.sort((a, b) => (a.Sira || 99) - (b.Sira || 99));
                 }
+
+                const kategoriler = (data && data.kategoriler) ? data.kategoriler : [];
+                const anaGrupMap = new Map();
+                const altGrupMap = {};
+
+                kategoriler.forEach(k => {
+                    const isim = (k.Urungrubu || k.UrunGrubu || '').trim();
+                    if (!isim) return;
+                    const anaGrup = (k.AnaGrup || isim).trim();
+                    const sirano = Number(k.Sirano ?? k.sirano ?? 99);
+
+                    if (!anaGrupMap.has(anaGrup) || sirano < anaGrupMap.get(anaGrup)) {
+                        anaGrupMap.set(anaGrup, sirano);
+                    }
+                    if (!altGrupMap[anaGrup]) altGrupMap[anaGrup] = [];
+                    if (isim !== anaGrup) {
+                        altGrupMap[anaGrup].push({ ad: isim, sirano: sirano });
+                    }
+                });
+
+                sabitKategoriler = Array.from(anaGrupMap.entries())
+                    .sort((a, b) => a[1] - b[1])
+                    .map(([ad]) => ({ ad, resim: getKategoriGorseli(ad), fallback: getKategoriGorseli(ad) }));
+
+                sabitKategoriler.forEach(kat => {
+                    const altlar = (altGrupMap[kat.ad] || []).sort((a, b) => a.sirano - b.sirano).map(x => x.ad);
+                    altHiyerarsi[kat.ad] = [kat.ad, ...altlar];
+                });
+
+                anaKatAlani.innerHTML = '';
+
+                if (sabitKategoriler.length === 0) {
+                    anaKatAlani.innerHTML = `<div class="text-brandBlue/60 text-sm font-medium py-6 px-2">Henüz tanımlı kategori bulunmuyor. Lütfen admin panelden kategori ekleyin.</div>`;
+                    baslik.textContent = "Kategori";
+                    urunGrid.innerHTML = '';
+                    return;
+                }
+
+                sabitKategoriler.forEach(kat => {
+                    const div = document.createElement('div');
+                    div.className = "flex-shrink-0 w-40 md:w-52 h-24 md:h-28 rounded-[1.5rem] relative overflow-hidden cursor-pointer shadow-sm hover:shadow-lg transition-all duration-300 border border-black/5 group ana-kat-btn";
+                    div.innerHTML = `
+                        <img src="${kat.resim}" onerror="this.onerror=null; this.src='${kat.fallback}';" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                        <div class="absolute inset-0 bg-gradient-to-t from-brandDark/85 via-brandDark/25 to-transparent"></div>
+                        <div class="absolute inset-0 flex items-end justify-center pb-3 px-2 text-center">
+                            <span class="text-white font-serif font-semibold text-[0.7rem] md:text-sm uppercase tracking-[0.15em] drop-shadow-md z-10">${kat.ad}</span>
+                        </div>
+                        <div class="kat-overlay absolute bottom-0 left-0 right-0 h-[3px] bg-brandGold scale-x-0 origin-center transition-transform duration-300"></div>`;
+                    anaKatAlani.appendChild(div);
+                });
 
                 const btnler = anaKatAlani.querySelectorAll('.ana-kat-btn');
                 btnler.forEach((btn, idx) => {
@@ -431,8 +606,8 @@
 
             function selectCategory(isim, btn) {
                 currentAnaKat = isim;
-                document.querySelectorAll('.kat-overlay').forEach(e => e.classList.remove('border-brandGold'));
-                if(btn) btn.querySelector('.kat-overlay').classList.add('border-brandGold');
+                document.querySelectorAll('.kat-overlay').forEach(e => e.classList.remove('scale-x-100'));
+                if(btn) btn.querySelector('.kat-overlay').classList.add('scale-x-100');
                 baslik.textContent = isim;
                 altKatAlani.innerHTML = '';
                 const altlar = altHiyerarsi[isim] || [isim];
@@ -445,18 +620,18 @@
                         const anaUpper = isim.toLocaleUpperCase('tr-TR');
 
                         if (altUpper === anaUpper) {
-                            return altlar.map(a => a.toLocaleUpperCase('tr-TR')).includes(g) || g === anaUpper;
+                            return g === anaUpper;
                         } else {
                             return g === altUpper;
                         }
                     }).length;
 
                     const b = document.createElement('button');
-                    b.className = `flex-shrink-0 px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all shadow-sm ${i === 0 ? 'bg-brandGold text-white shadow-md transform scale-105' : 'bg-white border border-brandBlue/20 text-brandBlue hover:bg-brandBg hover:text-brandGreen'}`;
+                    b.className = `flex-shrink-0 px-5 py-2.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all ${i === 0 ? 'bg-brandDark text-brandGold' : 'bg-transparent border border-black/10 text-brandDark/50 hover:border-brandGold/50 hover:text-brandGreen'}`;
                     b.textContent = `${alt} (${count})`;
                     b.onclick = (e) => {
-                        Array.from(altKatAlani.children).forEach(x => { x.className = "flex-shrink-0 px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider bg-white border border-brandBlue/20 text-brandBlue hover:bg-brandBg hover:text-brandGreen transition-all shadow-sm"; });
-                        e.target.className = "flex-shrink-0 px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider bg-brandGold text-white shadow-md transform scale-105 transition-all";
+                        Array.from(altKatAlani.children).forEach(x => { x.className = "flex-shrink-0 px-5 py-2.5 rounded-full text-xs font-semibold uppercase tracking-wider bg-transparent border border-black/10 text-brandDark/50 hover:border-brandGold/50 hover:text-brandGreen transition-all"; });
+                        e.target.className = "flex-shrink-0 px-5 py-2.5 rounded-full text-xs font-semibold uppercase tracking-wider bg-brandDark text-brandGold transition-all";
                         currentAltKat = alt;
                         renderUrunler(isim, alt);
                     };
@@ -469,17 +644,19 @@
 
             window.renderUrunler = function(ana, alt) {
                 const searchVal = document.getElementById('menu-arama').value.trim().toLocaleUpperCase('tr-TR');
+                let favs = JSON.parse(localStorage.getItem('center_favoriler')) || [];
 
                 const filtrelenenler = globalUrunler.filter(u => {
+                    if(sadeceFavoriler && !favs.includes(u.UrunAd)) return false;
                     if(!u.UrunGrubu) return false;
+
                     const g = u.UrunGrubu.toLocaleUpperCase('tr-TR');
                     const altUpper = alt.toLocaleUpperCase('tr-TR');
                     const anaUpper = ana.toLocaleUpperCase('tr-TR');
 
                     let katMatch = false;
                     if (altUpper === anaUpper) {
-                        const altlar = altHiyerarsi[ana] || [ana];
-                        katMatch = altlar.map(a => a.toLocaleUpperCase('tr-TR')).includes(g) || g === anaUpper;
+                        katMatch = (g === anaUpper);
                     } else {
                         katMatch = (g === altUpper);
                     }
@@ -499,6 +676,8 @@
                     return true;
                 });
 
+                filtrelenenler.sort((a, b) => (a.Sira || 99) - (b.Sira || 99));
+
                 urunGrid.innerHTML = '';
                 tavsiyeAlani.innerHTML = '';
 
@@ -507,47 +686,36 @@
                     return;
                 }
 
+                let tukenenler = JSON.parse(localStorage.getItem('center_tukenen_urunler')) || [];
+
                 filtrelenenler.forEach(u => {
                     const globalIndex = globalUrunler.indexOf(u);
                     const gorsel = getUrunGorseli(u);
+                    const isTukendi = tukenenler.includes(u.UrunAd);
+                    const isFav = favs.includes(u.UrunAd);
+
                     const badge = (u.is_gluten_free == 1) ? `<span class="absolute top-3 left-3 bg-brandGreen text-white text-[0.6rem] font-bold px-3 py-1 rounded-full uppercase tracking-widest shadow-md z-10 border border-brandGreen/50">GF</span>` : '';
-                    const kalori = u.kalori || u.Kalori || '0';
-                    const sure = u.sure || u.HazirlanmaSuresi || '0';
+                    const tukendiBadge = isTukendi ? `<div class="absolute inset-0 bg-black/60 flex items-center justify-center z-20"><span class="bg-red-600 text-white font-bold text-xs px-3 py-1.5 rounded-full uppercase tracking-wider shadow-lg">Tükendi</span></div>` : '';
+                    const favBtn = `<button onclick="toggleFavori(event, ${globalIndex})" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur shadow-sm flex items-center justify-center text-lg z-20 transition-all hover:scale-110 ${isFav ? 'text-red-500' : 'text-gray-300 hover:text-red-400'}"><i class="fa-${isFav ? 'solid' : 'regular'} fa-heart"></i></button>`;
 
                     urunGrid.innerHTML += `
-                        <div class="bg-white rounded-3xl shadow-sm border border-brandBlue/10 flex flex-col relative cursor-pointer hover:shadow-xl transition-all group overflow-hidden">
-                            <div onclick="openModal(${globalIndex})" class="w-full h-40 md:h-48 relative overflow-hidden bg-brandBg">
+                        <div onclick="openModal(${globalIndex})" class="bg-white rounded-[1.75rem] border border-black/5 flex flex-col relative cursor-pointer hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 group overflow-hidden ${isTukendi ? 'opacity-60' : ''}">
+                            ${tukendiBadge}
+                            <div class="w-full aspect-[4/3] relative overflow-hidden bg-brandBg">
                                 ${badge}
-                                <img src="${gorsel}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                                ${favBtn}
+                                <img src="${gorsel}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
                             </div>
-                            <div class="p-4 flex flex-col flex-1">
-                                <h3 onclick="openModal(${globalIndex})" class="font-bold text-sm md:text-base uppercase mb-2 text-brandDark tracking-wide line-clamp-2">${u.UrunAd}</h3>
-                                <div class="mt-auto flex items-center justify-between pt-3 border-t border-brandBlue/10">
-                                    <span class="font-black text-brandGreen text-lg">₺${u.FixFiyat || "0.00"}</span>
-                                    <button onclick="sepeteEkle(${globalIndex})" class="bg-brandBg text-brandGold w-8 h-8 rounded-full flex items-center justify-center group-hover:bg-brandGold group-hover:text-white transition-colors">
-                                        <i class="fa-solid fa-plus text-xs"></i>
-                                    </button>
+                            <div class="p-4 md:p-5 flex flex-col flex-1">
+                                <h3 class="font-serif font-semibold text-sm md:text-base text-brandDark tracking-wide line-clamp-2 mb-3">${u.UrunAd}</h3>
+                                <div class="mt-auto flex items-center justify-between pt-3 border-t border-brandGold/20">
+                                    <span class="font-bold text-brandGreen text-base md:text-lg">₺${u.FixFiyat || "0.00"}</span>
+                                    ${isTukendi ? `<span class="text-[0.65rem] font-bold text-red-500 uppercase tracking-wider">Tükendi</span>` : ''}
                                 </div>
                             </div>
                         </div>
                     `;
                 });
-            }
-
-            window.sepet = [];
-            window.sepeteEkle = function(index) {
-                const urun = globalUrunler[index];
-                sepet.push(urun);
-                localStorage.setItem('center_sepet', JSON.stringify(sepet));
-
-                const toast = document.getElementById('toast');
-                document.getElementById('toast-message').textContent = `${urun.UrunAd} sepete eklendi!`;
-                toast.classList.remove('opacity-0', 'translate-y-[-20px]');
-                toast.classList.add('opacity-100', 'translate-y-0');
-                setTimeout(() => {
-                    toast.classList.remove('opacity-100', 'translate-y-0');
-                    toast.classList.add('opacity-0', 'translate-y-[-20px]');
-                }, 2000);
             }
         });
     </script>
