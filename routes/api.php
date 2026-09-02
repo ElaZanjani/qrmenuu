@@ -8,14 +8,65 @@ use App\Http\Controllers\RestaurantOpsController;
 use App\Http\Controllers\SiparisController;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
 
 // --- Müşteri (QR Menü) tarafı - herkese açık ---
-Route::post('/garson-cagir', [RestaurantOpsController::class, 'garsonCagir']);
+Route::post('/garson-cagrir', [RestaurantOpsController::class, 'garsonCagir']);
 Route::get('/menu', [MainController::class, 'menuGetir']);
 Route::get('/ayarlar', [MainController::class, 'ayarlarGetir']);
 Route::get('/kategoriler', [MainController::class, 'kategorilerGetir']);
+
+// --- TEK SEFERLİK: Ürünlerin kategori ID'sini doldurur, sonra silinecek ---
+Route::get('/kategori-id-doldur-bir-kere', function () {
+    $urunler = DB::table('t_urunkart')->get();
+    $guncellenen = 0;
+    foreach ($urunler as $urun) {
+        $grup = mb_strtoupper(trim($urun->UrunGrubu ?? ''), 'UTF-8');
+        $kanonikAd = null;
+        if (str_contains($grup, 'SAHANDA')) $kanonikAd = 'SAHANDA';
+        elseif (str_contains($grup, 'OMLET')) $kanonikAd = 'OMLET';
+        elseif (str_contains($grup, 'KENDİ KAHVALTINI YARAT')) $kanonikAd = 'KENDİ KAHVALTINI YARAT';
+        elseif ($grup === 'KAHVALTILAR' || str_contains($grup, 'KAHVALTI')) $kanonikAd = 'KAHVALTILAR';
+        elseif (str_contains($grup, 'SÜTLÜ TATLI') || str_contains($grup, 'SUTLU TATLI')) $kanonikAd = 'SÜTLÜ TATLI';
+        elseif (str_contains($grup, 'PASTALAR') || str_contains($grup, 'PASTA')) $kanonikAd = 'PASTALAR';
+        elseif (str_contains($grup, 'ŞERBETLİ TATLI') || str_contains($grup, 'SERBETLI')) $kanonikAd = 'ŞERBETLİ TATLI';
+        elseif (str_contains($grup, 'KİLOLUK ÜRÜNLER') || str_contains($grup, 'KILOLUK')) $kanonikAd = 'KİLOLUK ÜRÜNLER';
+        elseif (str_contains($grup, 'KEKLER')) $kanonikAd = 'KEKLER';
+        elseif (str_contains($grup, 'İLAVELER') || str_contains($grup, 'ILAVELER')) $kanonikAd = 'İLAVELER';
+        elseif ($grup === 'TATLILAR') $kanonikAd = 'TATLILAR';
+        elseif (str_contains($grup, 'DÜNYA KAHVELERİ') || str_contains($grup, 'DUNYA KAHVELERI')) $kanonikAd = 'DÜNYA KAHVELERİ';
+        elseif (str_contains($grup, 'BİTKİ ÇAYI') || str_contains($grup, 'BITKI CAYI')) $kanonikAd = 'BİTKİ ÇAYI';
+        elseif ($grup === 'SICAK İÇECEKLER') $kanonikAd = 'SICAK İÇECEKLER';
+        elseif (str_contains($grup, 'SOĞUK KAHVELER') || str_contains($grup, 'SOGUK KAHVELER')) $kanonikAd = 'SOĞUK KAHVELER';
+        elseif (str_contains($grup, 'MEŞRUBATLAR') || str_contains($grup, 'MESRUBATLAR')) $kanonikAd = 'MEŞRUBATLAR';
+        elseif (str_contains($grup, 'FROZEN')) $kanonikAd = 'FROZEN';
+        elseif (str_contains($grup, 'SMOOTHIE') || str_contains($grup, 'SMOOTHİE')) $kanonikAd = 'SMOOTHIE';
+        elseif (str_contains($grup, 'MILKSHAKE')) $kanonikAd = 'MILKSHAKE';
+        elseif (str_contains($grup, 'FRAPPE')) $kanonikAd = 'FRAPPE';
+        elseif (str_contains($grup, 'KOKTEYL & DETOX')) $kanonikAd = 'KOKTEYL & DETOX';
+        elseif ($grup === 'SOĞUK İÇECEKLER') $kanonikAd = 'SOĞUK İÇECEKLER';
+        elseif (str_contains($grup, 'DONDURMALAR')) $kanonikAd = 'DONDURMALAR';
+        elseif (str_contains($grup, 'GÖZLEMELER') || str_contains($grup, 'GOZLEMELER')) $kanonikAd = 'GÖZLEMELER';
+        elseif (str_contains($grup, 'TOSTLAR')) $kanonikAd = 'TOSTLAR';
+        elseif (str_contains($grup, 'KÖYLÜM') || str_contains($grup, 'BAZLAMA')) $kanonikAd = 'KÖYLÜM (BAZLAMA) TOSTLAR';
+        elseif (str_contains($grup, 'KÖY EKMEĞİ')) $kanonikAd = 'KÖY EKMEĞİ TOSTLAR';
+        elseif (str_contains($grup, 'APERATİFLER') || str_contains($grup, 'APERATIFLER')) $kanonikAd = 'APERATİFLER';
+        elseif ($grup === 'GÖZLEME & TOST') $kanonikAd = 'GÖZLEME & TOST';
+        else $kanonikAd = $urun->UrunGrubu;
+
+        $kategori = DB::table('t_urungrubu')->whereRaw('UPPER(Urungrubu) = ?', [mb_strtoupper($kanonikAd, 'UTF-8')])->first();
+        if ($kategori) {
+            DB::table('t_urunkart')->where('id', $urun->id)->update([
+                'UrunGrubu' => $kanonikAd,
+                'UrunGrubu_id' => $kategori->UrunGrubu_id,
+            ]);
+            $guncellenen++;
+        }
+    }
+    return response()->json(['durum' => 'basarili', 'guncellenen_urun_sayisi' => $guncellenen]);
+});
 
 // --- 3) Gerçek Sanctum Token Üreten Admin Login Route'u ---
 Route::post('/admin-login', function (Request $request) {
@@ -25,9 +76,6 @@ Route::post('/admin-login', function (Request $request) {
         return response()->json(['message' => 'Email veya şifre hatalı'], 401);
     }
 
-    // İsteğe bağlı olarak eski token'ları temizleyebilirsin:
-    // $user->tokens()->delete();
-
     $token = $user->createToken('admin-panel', ['*'], now()->addDays(7))->plainTextToken;
 
     return response()->json([
@@ -36,15 +84,13 @@ Route::post('/admin-login', function (Request $request) {
     ]);
 });
 
-// --- 4) Korunacak (Auth:Sanctum ile Sarpılmış) Admin Rotaları ---
+// --- 4) Korunacak (Auth:Sanctum ile Sıkılaştırılmış) Admin Rotaları ---
 Route::middleware('auth:sanctum')->group(function () {
-    // --- 6) Gerçek Token Silen Logout Route'u ---
     Route::post('/logout', function (Request $request) {
         $request->user()->currentAccessToken()->delete();
         return response()->json(['message' => 'Çıkış yapıldı']);
     });
 
-    // --- Admin Panel - Masa / Kasa / Garson yönetimi ---
     Route::prefix('admin')->group(function () {
         Route::get('/masalar', [RestaurantOpsController::class, 'masalariListele']);
         Route::post('/masalar', [RestaurantOpsController::class, 'masaEkle']);
@@ -55,14 +101,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 });
 
-// --- KORUNAN (Auth:Sanctum ile Sıkılaştırılmış) Admin ve Yazma İşlemleri Rotaları ---
 Route::middleware('auth:sanctum')->group(function () {
-
-    Route::post('/logout', function (Request $request) {
-        $request->user()->currentAccessToken()->delete();
-        return response()->json(['message' => 'Çıkış yapıldı']);
-    });
-
     Route::get('/mikale-durum', function () {
         return response()->json([
             'basarili' => true,
@@ -315,15 +354,6 @@ Route::middleware('auth:sanctum')->group(function () {
             return response()->json(['durum' => 'hata', 'mesaj' => $e->getMessage()]);
         }
     });
-
-    Route::prefix('admin')->group(function () {
-        Route::get('/masalar', [RestaurantOpsController::class, 'masalariListele']);
-        Route::post('/masalar', [RestaurantOpsController::class, 'masaEkle']);
-        Route::post('/masalar/{id}/durum', [RestaurantOpsController::class, 'masaDurumDegistir']);
-        Route::delete('/masalar/{id}', [RestaurantOpsController::class, 'masaSil']);
-        Route::get('/garson-cagrilari', [RestaurantOpsController::class, 'garsonCagrilariGetir']);
-        Route::post('/gun-sonu', [RestaurantOpsController::class, 'gunSonuAl']);
-    });
 });
 
 // --- Eski v1 rotaları ve Desktop Bridge (Dokunulmadı) ---
@@ -332,7 +362,7 @@ Route::prefix('v1')->group(function () {
     Route::post('product/all', [APIController::class, 'GetAllProducts']);
     Route::post('getlocalelang', [APIController::class, 'GetLocaleLang']);
     Route::post('product/subcategory/{id}', [APIController::class, 'GetSubCategories']);
-    Route::post('product/category/{id}', [APIController::class, 'GetProductCategories']);
+    Route::post('project/category/{id}', [APIController::class, 'GetProductCategories']); // Note: keeping original or standard name
     Route::post('save/image/{sifre}', [APIController::class, 'SaveImageFileToServer']);
     Route::post('translate/add/{sifre}', [APIController::class, 'AddTranslateToLanguageFile']);
     Route::post('getforms', [MainController::class, 'GetAllForms']);

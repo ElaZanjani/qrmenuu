@@ -129,18 +129,26 @@ class APIController extends Controller
         $x3   = substr($gelensifre, 3, 1) + 3;
         $x4   = substr($gelensifre, 5, 1) + 2;
 
-
         $islem = $tumu . $x1 . $x2 . $x3 . $x4;
 
-        if ($gelensifre == $islem) {
-            $json = $request->all();
-
-            $data = base64_decode($json['base64']);
-            $file = "assets/img/urunler/" . $json['filename'];
-
-            $success = file_put_contents($file, $data);
-            print $success ? $file : 'Unable to save the file.';
+        if ($gelensifre != $islem) {
+            return response()->json(['durum' => 'hata', 'mesaj' => 'Yetkisiz erişim!'], 401);
         }
+
+        $json = $request->all();
+        $izinliUzantilar = ['jpg', 'jpeg', 'png', 'webp'];
+        $orijinalUzanti = strtolower(pathinfo($json['filename'], PATHINFO_EXTENSION));
+
+        if (!in_array($orijinalUzanti, $izinliUzantilar)) {
+            return response()->json(['durum' => 'hata', 'mesaj' => 'Geçersiz dosya türü!'], 422);
+        }
+
+        $guvenliDosyaAdi = uniqid('urun_') . '.' . $orijinalUzanti;
+        $data = base64_decode($json['base64']);
+        $file = "assets/img/urunler/" . $guvenliDosyaAdi;
+
+        $success = file_put_contents($file, $data);
+        print $success ? $guvenliDosyaAdi : 'Unable to save the file.';
     }
 
     public function Insert(Request $request, $table, $gelensifre)
@@ -151,30 +159,29 @@ class APIController extends Controller
         $x3   = substr($gelensifre, 3, 1) + 3;
         $x4   = substr($gelensifre, 5, 1) + 2;
 
-
         $islem = $tumu . $x1 . $x2 . $x3 . $x4;
 
-        if ($gelensifre == $islem) {
-            $data = $request->all();
-
-            $isok = 1;
-            foreach ($data as $d) {
-                $keys = array_keys($d);
-                $values = array_values($d);
-
-                if (!$this->DuplicateQuery($table, $keys, $values))
-                    $isok = 0;
-            }
-
-
-            if ($isok)
-                echo "OK";
-            else
-                echo "NO";
-
-        } else {
+        if ($gelensifre != $islem) {
             return "api key hatalı!";
         }
+
+        $izinliTablolar = ['t_urunkart', 't_urungrubu', 't_masalar'];
+        if (!in_array($table, $izinliTablolar)) {
+            return "NO";
+        }
+
+        $data = $request->all();
+        $isok = 1;
+
+        foreach ($data as $d) {
+            try {
+                DB::table($table)->updateOrInsert(['id' => $d['id'] ?? 0], $d);
+            } catch (\Exception $e) {
+                $isok = 0;
+            }
+        }
+
+        echo $isok ? "OK" : "NO";
     }
     
     // Masaüstü uygulamasının veritabanı rotasındaki hataları önlemek için eklendi
@@ -197,11 +204,15 @@ class APIController extends Controller
         $x3   = substr($gelensifre, 3, 1) + 3;
         $x4   = substr($gelensifre, 5, 1) + 2;
 
-
         $islem = $tumu . $x1 . $x2 . $x3 . $x4;
 
         if ($gelensifre == $islem) {
             $json = $request->all();
+
+            $izinliDiller = ['tr.json', 'en.json', 'ru.json', 'de.json', 'ua.json', 'fr.json'];
+            if (!isset($json['langfile']) || !in_array($json['langfile'], $izinliDiller)) {
+                return response()->json(['durum' => 'hata', 'mesaj' => 'Geçersiz dil dosyası!'], 422);
+            }
 
             $langfile = $json['langfile'];
             $word = $json['word'];
@@ -219,78 +230,5 @@ class APIController extends Controller
 
             echo "OK";
         }
-    }
-
-    public function DuplicateQuery($table, $data, $values)
-    {
-        if (count($data) != count($values)) {
-            echo "HATA : Data ve Values sayısı birbirine uyuşmuyor!";
-            return null;
-        }
-
-        $query = "INSERT INTO " . $table . " (";
-
-        for ($i = 0; $i < count($data); $i++) {
-            if ($i != count($data) - 1)
-                $query .= $data[$i] . ',';
-            else
-                $query .= $data[$i] . ') ';
-        }
-
-        $query .= "VALUES(";
-
-        for ($i = 0; $i < count($values); $i++) {
-            if ($i != count($values) - 1)
-                $query .= "'" . $values[$i] . "',";
-            else
-                $query .= "'" . $values[$i] . "') ";
-        }
-
-        $query .= "ON DUPLICATE KEY UPDATE ";
-
-
-        for ($i = 1; $i < count($data); $i++) {
-            if ($i != count($data) - 1)
-                $query .= $data[$i] . " = '" . $values[$i] . "', ";
-            else
-                $query .= $data[$i] . " = '" . $values[$i] . "'";
-        }
-
-        $query = DB::unprepared(DB::raw($query));
-
-        return $query;
-    }
-
-    // Masaüstü / POS Uygulaması İçin Ana Veri Senkronizasyon Metodu
-    public function DesktopSync()
-    {
-        // 1. Masaların güncel durumunu sunucudan oku
-        $masaDosyasi = storage_path('app/masalar.json');
-        $masalar = [];
-        if (file_exists($masaDosyasi)) {
-            $masalar = json_decode(file_get_contents($masaDosyasi), true);
-        }
-
-        // 2. Kasa (Ciro ve İşlemler) durumunu oku
-        $kasaDosyasi = storage_path('app/kasa.json');
-        $kasa = [];
-        if (file_exists($kasaDosyasi)) {
-            $kasa = json_decode(file_get_contents($kasaDosyasi), true);
-        }
-
-        // 3. Veritabanındaki tüm ürünleri çek
-        // Not: Veritabanı tablolarının yapısına göre table adını 'products' veya 'urun_kart' olarak güncelleyebilirsin.
-        $urunler = DB::table('products')->get(); 
-
-        return response()->json([
-            'durum' => 'basarili',
-            'mesaj' => 'Sistem verileri masaüstü uygulaması için başarıyla senkronize edildi.',
-            'veri' => [
-                'zaman' => now()->toDateTimeString(),
-                'kasa_durumu' => $kasa,
-                'masa_durumu' => $masalar,
-                'urun_listesi' => $urunler
-            ]
-        ]);
     }
 }

@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Validator;
 
 class RestaurantOpsController extends Controller
 {
-    // POST /api/garson-cagir  (Müşteri tarafı - herkese açık, auth gerekmez)
+    // POST /api/garson-cagri  (Müşteri tarafı - herkese açık, auth gerekmez)
     public function garsonCagir(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -75,42 +75,44 @@ class RestaurantOpsController extends Controller
             $tutar = (float) $request->input('tutar', 0);
             DB::table('t_masalar')->where('id', $id)->update(['durum' => 1, 'guncel_tutar' => $tutar, 'updated_at' => now()]);
         } else {
-            // Dolu masayı kapatma (ödeme alma)
-            $odemeTuru = $request->input('odeme_turu', 'Nakit'); // 'Nakit' | 'Kredi Kartı'
+            // Dolu masayı kapatma (ödeme alma) — Race condition korumalı (transaction + satır kilidi)
+            $odemeTuru = $request->input('odeme_turu', 'Nakit');
             $tutar = $masa->guncel_tutar;
+            
+            DB::transaction(function () use ($odemeTuru, $tutar, $masa, $id) {
+                $masaKilitli = DB::table('t_masalar')->where('id', $id)->lockForUpdate()->first();
+                $bugun = now()->toDateString();
+                $rapor = DB::table('kasa_z_raporlari')->where('tarih', $bugun)->lockForUpdate()->first();
+                $islemler = $rapor ? json_decode($rapor->islemler, true) : [];
+                $islemler[] = [
+                    'islem_saati' => now()->toDateTimeString(),
+                    'turu' => $odemeTuru,
+                    'tutar' => $tutar,
+                    'aciklama' => $masa->isim . ' Odemesi',
+                ];
 
-            // Günlük Z-raporuna bu ödemeyi işle
-            $bugun = now()->toDateString();
-            $rapor = DB::table('kasa_z_raporlari')->where('tarih', $bugun)->first();
-            $islemler = $rapor ? json_decode($rapor->islemler, true) : [];
-            $islemler[] = [
-                'islem_saati' => now()->toDateTimeString(),
-                'turu' => $odemeTuru,
-                'tutar' => $tutar,
-                'aciklama' => $masa->isim . ' Odemesi',
-            ];
+                if ($rapor) {
+                    DB::table('kasa_z_raporlari')->where('id', $rapor->id)->update([
+                        'nakit_toplam' => $rapor->nakit_toplam + ($odemeTuru === 'Nakit' ? $tutar : 0),
+                        'kredi_karti_toplam' => $rapor->kredi_karti_toplam + ($odemeTuru === 'Kredi Kartı' ? $tutar : 0),
+                        'islemler' => json_encode($islemler),
+                        'updated_at' => now(),
+                    ]);
+                } else {
+                    DB::table('kasa_z_raporlari')->insert([
+                        'tarih' => $bugun,
+                        'nakit_toplam' => $odemeTuru === 'Nakit' ? $tutar : 0,
+                        'kredi_karti_toplam' => $odemeTuru === 'Kredi Kartı' ? $tutar : 0,
+                        'yemek_karti_toplam' => 0,
+                        'veresiye_toplam' => 0,
+                        'islemler' => json_encode($islemler),
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
 
-            if ($rapor) {
-                DB::table('kasa_z_raporlari')->where('id', $rapor->id)->update([
-                    'nakit_toplam' => $rapor->nakit_toplam + ($odemeTuru === 'Nakit' ? $tutar : 0),
-                    'kredi_karti_toplam' => $rapor->kredi_karti_toplam + ($odemeTuru === 'Kredi Kartı' ? $tutar : 0),
-                    'islemler' => json_encode($islemler),
-                    'updated_at' => now(),
-                ]);
-            } else {
-                DB::table('kasa_z_raporlari')->insert([
-                    'tarih' => $bugun,
-                    'nakit_toplam' => $odemeTuru === 'Nakit' ? $tutar : 0,
-                    'kredi_karti_toplam' => $odemeTuru === 'Kredi Kartı' ? $tutar : 0,
-                    'yemek_karti_toplam' => 0,
-                    'veresiye_toplam' => 0,
-                    'islemler' => json_encode($islemler),
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-            }
-
-            DB::table('t_masalar')->where('id', $id)->update(['durum' => 0, 'guncel_tutar' => 0, 'updated_at' => now()]);
+                DB::table('t_masalar')->where('id', $id)->update(['durum' => 0, 'guncel_tutar' => 0, 'updated_at' => now()]);
+            });
         }
 
         return response()->json(['success' => true]);
