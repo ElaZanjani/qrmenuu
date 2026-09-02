@@ -5,21 +5,6 @@ use App\Http\API\DesktopSyncController;
 use App\Http\Controllers\Auth\DesktopAuthController;
 use App\Http\Controllers\MainController;
 use App\Http\Controllers\RestaurantOpsController;
-<<<<<<< HEAD
-use App\Models\User;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Route;
-
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-*/
-
-// Müşteri tarafı - Herkese açık rotalar
-=======
 use App\Http\Controllers\SiparisController;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -27,34 +12,11 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
 
 // --- Müşteri (QR Menü) tarafı - herkese açık ---
->>>>>>> f1d286e40b74d105e5d0a37f5a0149b92fcfe75f
 Route::post('/garson-cagir', [RestaurantOpsController::class, 'garsonCagir']);
 Route::get('/menu', [MainController::class, 'menuGetir']);
 Route::get('/ayarlar', [MainController::class, 'ayarlarGetir']);
 Route::get('/kategoriler', [MainController::class, 'kategorilerGetir']);
 
-<<<<<<< HEAD
-// TEK admin login noktası (Sanctum Token Üreten)
-Route::post('/admin-login', function (Request $request) {
-    $request->validate([
-        'email' => 'required|email',
-        'password' => 'required'
-    ]);
-
-    $user = User::where('email', $request->email)->first();
-
-    if (!$user || !Hash::check($request->password, $user->password)) {
-        return response()->json(['durum' => 'hata', 'mesaj' => 'E-posta veya şifre hatalı!'], 401);
-    }
-
-    $token = $user->createToken('admin-panel', ['*'], now()->addDays(7))->plainTextToken;
-
-    return response()->json([
-        'durum' => 'basarili',
-        'token' => $token,
-        'user' => $user,
-    ]);
-=======
 // --- 3) Gerçek Sanctum Token Üreten Admin Login Route'u ---
 Route::post('/admin-login', function (Request $request) {
     $user = User::where('email', $request->email)->first();
@@ -91,7 +53,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/garson-cagrilari', [RestaurantOpsController::class, 'garsonCagrilariGetir']);
         Route::post('/gun-sonu', [RestaurantOpsController::class, 'gunSonuAl']);
     });
->>>>>>> f1d286e40b74d105e5d0a37f5a0149b92fcfe75f
 });
 
 // --- KORUNAN (Auth:Sanctum ile Sıkılaştırılmış) Admin ve Yazma İşlemleri Rotaları ---
