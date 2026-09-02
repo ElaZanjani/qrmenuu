@@ -5,6 +5,7 @@ use App\Http\API\DesktopSyncController;
 use App\Http\Controllers\Auth\DesktopAuthController;
 use App\Http\Controllers\MainController;
 use App\Http\Controllers\RestaurantOpsController;
+<<<<<<< HEAD
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -18,11 +19,21 @@ use Illuminate\Support\Facades\Route;
 */
 
 // Müşteri tarafı - Herkese açık rotalar
+=======
+use App\Http\Controllers\SiparisController;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Route;
+
+// --- Müşteri (QR Menü) tarafı - herkese açık ---
+>>>>>>> f1d286e40b74d105e5d0a37f5a0149b92fcfe75f
 Route::post('/garson-cagir', [RestaurantOpsController::class, 'garsonCagir']);
 Route::get('/menu', [MainController::class, 'menuGetir']);
 Route::get('/ayarlar', [MainController::class, 'ayarlarGetir']);
 Route::get('/kategoriler', [MainController::class, 'kategorilerGetir']);
 
+<<<<<<< HEAD
 // TEK admin login noktası (Sanctum Token Üreten)
 Route::post('/admin-login', function (Request $request) {
     $request->validate([
@@ -43,6 +54,44 @@ Route::post('/admin-login', function (Request $request) {
         'token' => $token,
         'user' => $user,
     ]);
+=======
+// --- 3) Gerçek Sanctum Token Üreten Admin Login Route'u ---
+Route::post('/admin-login', function (Request $request) {
+    $user = User::where('email', $request->email)->first();
+
+    if (!$user || !Hash::check($request->password, $user->password)) {
+        return response()->json(['message' => 'Email veya şifre hatalı'], 401);
+    }
+
+    // İsteğe bağlı olarak eski token'ları temizleyebilirsin:
+    // $user->tokens()->delete();
+
+    $token = $user->createToken('admin-panel', ['*'], now()->addDays(7))->plainTextToken;
+
+    return response()->json([
+        'user' => $user,
+        'token' => $token,
+    ]);
+});
+
+// --- 4) Korunacak (Auth:Sanctum ile Sarpılmış) Admin Rotaları ---
+Route::middleware('auth:sanctum')->group(function () {
+    // --- 6) Gerçek Token Silen Logout Route'u ---
+    Route::post('/logout', function (Request $request) {
+        $request->user()->currentAccessToken()->delete();
+        return response()->json(['message' => 'Çıkış yapıldı']);
+    });
+
+    // --- Admin Panel - Masa / Kasa / Garson yönetimi ---
+    Route::prefix('admin')->group(function () {
+        Route::get('/masalar', [RestaurantOpsController::class, 'masalariListele']);
+        Route::post('/masalar', [RestaurantOpsController::class, 'masaEkle']);
+        Route::post('/masalar/{id}/durum', [RestaurantOpsController::class, 'masaDurumDegistir']);
+        Route::delete('/masalar/{id}', [RestaurantOpsController::class, 'masaSil']);
+        Route::get('/garson-cagrilari', [RestaurantOpsController::class, 'garsonCagrilariGetir']);
+        Route::post('/gun-sonu', [RestaurantOpsController::class, 'gunSonuAl']);
+    });
+>>>>>>> f1d286e40b74d105e5d0a37f5a0149b92fcfe75f
 });
 
 // --- KORUNAN (Auth:Sanctum ile Sıkılaştırılmış) Admin ve Yazma İşlemleri Rotaları ---
@@ -331,7 +380,7 @@ Route::prefix('v1')->group(function () {
     Route::prefix('desktop')->group(function () {
         Route::post('/login', [DesktopAuthController::class, 'login']);
 
-        Route::middleware('auth:sanctum')->group(function () {
+        Route::middleware('desktop.auth')->group(function () {
             Route::post('/logout', [DesktopAuthController::class, 'logout']);
             Route::post('/sync/tables', [DesktopSyncController::class, 'syncTables']);
             Route::post('/sync/menu', [DesktopSyncController::class, 'syncMenuPush']);
