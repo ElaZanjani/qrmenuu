@@ -94,10 +94,6 @@
                         <p class="text-lg font-bold text-brandGreen mt-1" id="durum-kategori">-</p>
                     </div>
                     <div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
-                        <p class="text-[0.65rem] text-gray-500 uppercase font-bold">Bugünkü Sipariş</p>
-                        <p class="text-lg font-bold text-brandGold mt-1" id="durum-siparis">-</p>
-                    </div>
-                    <div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
                         <p class="text-[0.65rem] text-gray-500 uppercase font-bold">Bekleyen Garson Çağrısı</p>
                         <p class="text-lg font-bold text-amber-400 mt-1" id="durum-garson">-</p>
                     </div>
@@ -217,7 +213,6 @@
                     document.getElementById('durum-disk').textContent = data.disk_bos_alan_gb + ' GB';
                     document.getElementById('durum-urun').textContent = data.toplam_urun;
                     document.getElementById('durum-kategori').textContent = data.toplam_kategori;
-                    document.getElementById('durum-siparis').textContent = data.bugunku_siparis;
                     document.getElementById('durum-garson').textContent = data.bekleyen_garson_cagrisi;
                 })
                 .catch(() => showToast('Sistem durumu alınamadı!', 'bg-red-500'));
