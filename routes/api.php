@@ -5,53 +5,54 @@ use App\Http\API\DesktopSyncController;
 use App\Http\Controllers\Auth\DesktopAuthController;
 use App\Http\Controllers\MainController;
 use App\Http\Controllers\RestaurantOpsController;
-use App\Http\Controllers\SiparisController;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
 
-// --- Müşteri (QR Menü) tarafı - herkese açık ---
-Route::post('/garson-cagrir', [RestaurantOpsController::class, 'garsonCagir']);
+/*
+|--------------------------------------------------------------------------
+| API Routes
+|--------------------------------------------------------------------------
+*/
+
+// Müşteri tarafı - Herkese açık rotalar
+Route::post('/garson-cagir', [RestaurantOpsController::class, 'garsonCagir']);
 Route::get('/menu', [MainController::class, 'menuGetir']);
 Route::get('/ayarlar', [MainController::class, 'ayarlarGetir']);
 Route::get('/kategoriler', [MainController::class, 'kategorilerGetir']);
 
-// --- 3) Gerçek Sanctum Token Üreten Admin Login Route'u ---
+// TEK admin login noktası (Sanctum Token Üreten)
 Route::post('/admin-login', function (Request $request) {
+    $request->validate([
+        'email' => 'required|email',
+        'password' => 'required'
+    ]);
+
     $user = User::where('email', $request->email)->first();
 
     if (!$user || !Hash::check($request->password, $user->password)) {
-        return response()->json(['message' => 'Email veya şifre hatalı'], 401);
+        return response()->json(['durum' => 'hata', 'mesaj' => 'E-posta veya şifre hatalı!'], 401);
     }
 
     $token = $user->createToken('admin-panel', ['*'], now()->addDays(7))->plainTextToken;
 
     return response()->json([
-        'user' => $user,
+        'durum' => 'basarili',
         'token' => $token,
+        'user' => $user,
     ]);
 });
 
-// --- 4) Korunacak (Auth:Sanctum ile Sıkılaştırılmış) Admin Rotaları ---
+// --- KORUNAN (Auth:Sanctum ile Sıkılaştırılmış) Admin ve Yazma İşlemleri Rotaları ---
 Route::middleware('auth:sanctum')->group(function () {
+
     Route::post('/logout', function (Request $request) {
         $request->user()->currentAccessToken()->delete();
         return response()->json(['message' => 'Çıkış yapıldı']);
     });
 
-    Route::prefix('admin')->group(function () {
-        Route::get('/masalar', [RestaurantOpsController::class, 'masalariListele']);
-        Route::post('/masalar', [RestaurantOpsController::class, 'masaEkle']);
-        Route::post('/masalar/{id}/durum', [RestaurantOpsController::class, 'masaDurumDegistir']);
-        Route::delete('/masalar/{id}', [RestaurantOpsController::class, 'masaSil']);
-        Route::get('/garson-cagrilari', [RestaurantOpsController::class, 'garsonCagrilariGetir']);
-        Route::post('/gun-sonu', [RestaurantOpsController::class, 'gunSonuAl']);
-    });
-});
-
-Route::middleware('auth:sanctum')->group(function () {
     Route::get('/mikale-durum', function () {
         return response()->json([
             'basarili' => true,
@@ -62,6 +63,7 @@ Route::middleware('auth:sanctum')->group(function () {
             'toplam_urun' => DB::table('t_urunkart')->count(),
             'toplam_kategori' => DB::table('t_urungrubu')->count(),
             'toplam_masa' => DB::table('t_masalar')->count(),
+            'bugunku_siparis' => DB::table('web_orders')->whereDate('created_at', now())->count(),
             'bekleyen_garson_cagrisi' => DB::table('waiter_calls')->where('pulled', false)->count(),
             'disk_bos_alan_gb' => round(@disk_free_space(base_path()) / 1073741824, 2),
         ]);
@@ -304,6 +306,16 @@ Route::middleware('auth:sanctum')->group(function () {
             return response()->json(['durum' => 'hata', 'mesaj' => $e->getMessage()]);
         }
     });
+
+    Route::prefix('admin')->group(function () {
+        Route::get('/masalar', [RestaurantOpsController::class, 'masalariListele']);
+        Route::post('/masalar', [RestaurantOpsController::class, 'masaEkle']);
+        Route::post('/masalar/{id}/durum', [RestaurantOpsController::class, 'masaDurumDegistir']);
+        Route::delete('/masalar/{id}', [RestaurantOpsController::class, 'masaSil']);
+        Route::get('/garson-cagrilari', [RestaurantOpsController::class, 'garsonCagrilariGetir']);
+        Route::post('/garson-cagrilari/okundu', [RestaurantOpsController::class, 'garsonCagrisiOkunduIsaretle']);
+        Route::post('/gun-sonu', [RestaurantOpsController::class, 'gunSonuAl']);
+    });
 });
 
 // --- Eski v1 rotaları ve Desktop Bridge (Dokunulmadı) ---
@@ -312,7 +324,7 @@ Route::prefix('v1')->group(function () {
     Route::post('product/all', [APIController::class, 'GetAllProducts']);
     Route::post('getlocalelang', [APIController::class, 'GetLocaleLang']);
     Route::post('product/subcategory/{id}', [APIController::class, 'GetSubCategories']);
-    Route::post('project/category/{id}', [APIController::class, 'GetProductCategories']); // Note: keeping original or standard name
+    Route::post('product/category/{id}', [APIController::class, 'GetProductCategories']);
     Route::post('save/image/{sifre}', [APIController::class, 'SaveImageFileToServer']);
     Route::post('translate/add/{sifre}', [APIController::class, 'AddTranslateToLanguageFile']);
     Route::post('getforms', [MainController::class, 'GetAllForms']);
@@ -321,7 +333,7 @@ Route::prefix('v1')->group(function () {
     Route::prefix('desktop')->group(function () {
         Route::post('/login', [DesktopAuthController::class, 'login']);
 
-        Route::middleware('desktop.auth')->group(function () {
+        Route::middleware('auth:sanctum')->group(function () {
             Route::post('/logout', [DesktopAuthController::class, 'logout']);
             Route::post('/sync/tables', [DesktopSyncController::class, 'syncTables']);
             Route::post('/sync/menu', [DesktopSyncController::class, 'syncMenuPush']);

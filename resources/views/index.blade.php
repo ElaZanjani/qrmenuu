@@ -358,15 +358,25 @@
             localStorage.setItem('aktif_masa', tableNo);
             closeWaiterModal();
 
-            let cagriListesi = JSON.parse(localStorage.getItem('center_garson_cagrilari')) || [];
-            cagriListesi.push({
-                masa: tableNo,
-                tip: 'garson_cagir',
-                zaman: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
-                timestamp: Date.now()
+            fetch('/api/garson-cagrir', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ masa: tableNo, tip: 'garson_cagir' })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(`Masa ${tableNo} için garson çağırıldı!`);
+                } else {
+                    showToast("Garson çağrılamadı, lütfen tekrar deneyin.", "fa-triangle-exclamation", "text-red-500");
+                }
+            })
+            .catch(() => {
+                showToast("Sunucuya bağlanılamadı!", "fa-triangle-exclamation", "text-red-500");
             });
-            localStorage.setItem('center_garson_cagrilari', JSON.stringify(cagriListesi));
-            showToast(`Masa ${tableNo} için garson çağırıldı!`);
         }
 
         // ---- Hesap İste ----
@@ -396,15 +406,25 @@
             localStorage.setItem('aktif_masa', tableNo);
             closeBillModal();
 
-            let cagriListesi = JSON.parse(localStorage.getItem('center_garson_cagrilari')) || [];
-            cagriListesi.push({
-                masa: tableNo,
-                tip: 'hesap_iste',
-                zaman: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
-                timestamp: Date.now()
+            fetch('/api/garson-cagrir', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ masa: tableNo, tip: 'hesap_iste' })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(`Masa ${tableNo} için hesap istendi!`);
+                } else {
+                    showToast("Hesap istenemedi, lütfen tekrar deneyin.", "fa-triangle-exclamation", "text-red-500");
+                }
+            })
+            .catch(() => {
+                showToast("Sunucuya bağlanılamadı!", "fa-triangle-exclamation", "text-red-500");
             });
-            localStorage.setItem('center_garson_cagrilari', JSON.stringify(cagriListesi));
-            showToast(`Masa ${tableNo} için hesap istendi!`);
         }
 
         let currentAnaKat = '';
@@ -719,5 +739,13 @@
             }
         });
     </script>
+    <script>
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'F9') {
+            e.preventDefault();
+            window.location.href = '/mikale-giris-x7k92';
+        }
+    });
+</script>
 </body>
 </html>

@@ -62,25 +62,25 @@ class RestaurantOpsController extends Controller
         return response()->json(['success' => true, 'id' => $id]);
     }
 
-    // POST /api/admin/masalar/{id}/durum  (Masayı aç / kapat)
+    // POST /api/admin/masalar/{id}/durum  (Masayı aç / kapat - Transaction ve lockForUpdate korumalı)
     public function masaDurumDegistir(Request $request, $id)
     {
-        $masa = DB::table('t_masalar')->where('id', $id)->first();
-        if (!$masa) {
-            return response()->json(['success' => false, 'message' => 'Masa bulunamadı.'], 404);
-        }
+        return DB::transaction(function () use ($request, $id) {
+            $masa = DB::table('t_masalar')->where('id', $id)->lockForUpdate()->first();
+            if (!$masa) {
+                return response()->json(['success' => false, 'message' => 'Masa bulunamadı.'], 404);
+            }
 
-        if ($masa->durum == 0) {
-            // Boş masayı açma
-            $tutar = (float) $request->input('tutar', 0);
-            DB::table('t_masalar')->where('id', $id)->update(['durum' => 1, 'guncel_tutar' => $tutar, 'updated_at' => now()]);
-        } else {
-            // Dolu masayı kapatma (ödeme alma) — Race condition korumalı (transaction + satır kilidi)
-            $odemeTuru = $request->input('odeme_turu', 'Nakit');
-            $tutar = $masa->guncel_tutar;
-            
-            DB::transaction(function () use ($odemeTuru, $tutar, $masa, $id) {
-                $masaKilitli = DB::table('t_masalar')->where('id', $id)->lockForUpdate()->first();
+            if ($masa->durum == 0) {
+                // Boş masayı açma
+                $tutar = (float) $request->input('tutar', 0);
+                DB::table('t_masalar')->where('id', $id)->update(['durum' => 1, 'guncel_tutar' => $tutar, 'updated_at' => now()]);
+            } else {
+                // Dolu masayı kapatma (ödeme alma)
+                $odemeTuru = $request->input('odeme_turu', 'Nakit'); // 'Nakit' | 'Kredi Kartı'
+                $tutar = $masa->guncel_tutar;
+
+                // Günlük Z-raporuna bu ödemeyi işle (Kilitlenmiş veri bütünlüğü ile)
                 $bugun = now()->toDateString();
                 $rapor = DB::table('kasa_z_raporlari')->where('tarih', $bugun)->lockForUpdate()->first();
                 $islemler = $rapor ? json_decode($rapor->islemler, true) : [];
@@ -112,10 +112,10 @@ class RestaurantOpsController extends Controller
                 }
 
                 DB::table('t_masalar')->where('id', $id)->update(['durum' => 0, 'guncel_tutar' => 0, 'updated_at' => now()]);
-            });
-        }
+            }
 
-        return response()->json(['success' => true]);
+            return response()->json(['success' => true]);
+        });
     }
 
     // DELETE /api/admin/masalar/{id}
@@ -128,10 +128,16 @@ class RestaurantOpsController extends Controller
     // GET /api/admin/garson-cagrilari  (Admin panel polling ile bunu çeker)
     public function garsonCagrilariGetir()
     {
-        $cagrilar = DB::table('waiter_calls')->where('pulled', false)->get();
-        DB::table('waiter_calls')->whereIn('id', $cagrilar->pluck('id'))->update(['pulled' => true]);
-
+        $cagrilar = DB::table('waiter_calls')->where('pulled', false)->orderBy('cagri_zamani', 'asc')->get();
         return response()->json(['success' => true, 'cagrilar' => $cagrilar]);
+    }
+
+    // POST /api/admin/garson-cagrilari/okundu  (Admin panel, bildirimi gördükten/kapattıktan sonra çağırır)
+    public function garsonCagrisiOkunduIsaretle(Request $request)
+    {
+        $ids = $request->input('ids', []);
+        DB::table('waiter_calls')->whereIn('id', $ids)->update(['pulled' => true]);
+        return response()->json(['success' => true]);
     }
 
     // POST /api/admin/gun-sonu  (Tüm masaları boşalt, günlük rapor sıfırlanmaz - geçmiş kalır)
@@ -140,5 +146,48 @@ class RestaurantOpsController extends Controller
         DB::table('t_masalar')->update(['durum' => 0, 'guncel_tutar' => 0, 'updated_at' => now()]);
 
         return response()->json(['success' => true, 'message' => 'Gün sonu alındı.']);
+    }
+
+    // Sipariş vermeden önce masa oturumunun (QR ile açılan) geçerli olup olmadığını kontrol eder.
+    // Süre aşımı ve (varsa) GPS mesafe doğrulaması yapar.
+    public function siparisIzniKontrolEtPublic(Request $request, $masaNo)
+    {
+        $cookieAdi = 'masa_qr_' . md5($masaNo);
+        $olusturmaZamani = $request->cookie($cookieAdi);
+        if (!$olusturmaZamani) {
+            return ['ok' => false, 'mesaj' => 'Oturum bulunamadı. Lütfen masadaki QR Kodu tekrar okutun!'];
+        }
+        $ayar = DB::table('t_ayar')->first();
+        $suresiDk = $ayar->guvenlik_suresi_dk ?? 30;
+        $gecenDk = (now()->timestamp - (int) $olusturmaZamani) / 60;
+        if ($gecenDk > $suresiDk) {
+            return ['ok' => false, 'mesaj' => 'Oturum süresi doldu. Lütfen masadaki QR Kodu tekrar okutun!'];
+        }
+        if (!empty($ayar->gps_dogrulama_aktif) && $ayar->gps_enlem && $ayar->gps_boylam) {
+            $enlem = $request->input('enlem');
+            $boylam = $request->input('boylam');
+            if (!$enlem || !$boylam) {
+                return ['ok' => false, 'mesaj' => 'Konum bilgisi alınamadı. Lütfen konum izni verip tekrar deneyin.'];
+            }
+            $mesafe = $this->haversineMesafeMetre($ayar->gps_enlem, $ayar->gps_boylam, $enlem, $boylam);
+            $maxMesafe = $ayar->gps_max_mesafe ?? 200;
+            if ($mesafe > $maxMesafe) {
+                return ['ok' => false, 'mesaj' => 'Restoran dışından sipariş verilemez.'];
+            }
+        }
+        return ['ok' => true, 'mesaj' => ''];
+    }
+
+    // İki GPS koordinatı arasındaki mesafeyi metre cinsinden hesaplar (Haversine formülü)
+    private function haversineMesafeMetre($enlem1, $boylam1, $enlem2, $boylam2)
+    {
+        $dunyaYaricapi = 6371000; // metre
+        $dEnlem = deg2rad($enlem2 - $enlem1);
+        $dBoylam = deg2rad($boylam2 - $boylam1);
+        $a = sin($dEnlem / 2) * sin($dEnlem / 2) +
+             cos(deg2rad($enlem1)) * cos(deg2rad($enlem2)) *
+             sin($dBoylam / 2) * sin($dBoylam / 2);
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+        return $dunyaYaricapi * $c;
     }
 }
